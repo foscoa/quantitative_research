@@ -12,7 +12,7 @@ print(client.list_database_names())
 
 start = '2014-01-01'
 end = '2024-03-31'
-tickers = ['SPY', 'VIXY']
+tickers = ['SPY', 'VIXY', 'SVXY']
 param = "Open"
 
 def q_TS_ETFs(tickers, start, end, param, collection):
