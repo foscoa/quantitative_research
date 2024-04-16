@@ -12,7 +12,7 @@ print(client.list_database_names())
 
 start = '2014-01-01'
 end = '2024-03-31'
-tickers = ['SPY', 'VIXY', 'SVXY']
+tickers = ['SPY', 'VIXY', 'SVXY', '^VIX']
 param = "Open"
 
 def q_TS_ETFs(tickers, start, end, param, collection):
@@ -51,7 +51,7 @@ def q_TS_ETFs(tickers, start, end, param, collection):
                             pd.DataFrame(data=opening_prices, index=dates),
                             left_index=True, right_index=True, how='outer')
 
-    data_to_return.columns = tickers
+    data_to_return.columns = [tck.replace('^', '') for tck in tickers]
 
     return data_to_return
 
