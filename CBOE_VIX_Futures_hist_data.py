@@ -47,17 +47,18 @@ paths = [document['path'] for document in result]
 
 ##
 
+db = client['Listed_Futures']
+collection = db['CBOE_VIX_Futures_monthly']
+
 for path in paths:
     url = "https://cdn.cboe.com/" + path
 
     # Read data from CBOE website
     data_frame = read_csv_from_url(url)
     expiry_string = url[-14:-4]
-    data_frame['Expiry'] = expiry_string # create column with expiration date
-    data_frame.drop('EFP', inplace= True, axis = 1)
-
-    db = client['Listed_Futures']
-    collection = db['CBOE_VIX_Futures_monthly']
+    data_frame['Expiry'] = pd.to_datetime(expiry_string)    # create column with expiration date
+    data_frame.drop('EFP', inplace=True, axis=1)
+    data_frame['Trade Date'] = pd.to_datetime(data_frame['Trade Date'])
 
     store_data_in_mongodb(data=data_frame,
                           collection=collection,
