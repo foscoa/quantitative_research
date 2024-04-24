@@ -1,6 +1,9 @@
 import pymongo
 from datetime import datetime
 import pandas as pd
+import numpy as np
+from scipy import interpolate
+import matplotlib.pyplot as plt
 
 url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
 
@@ -72,7 +75,7 @@ def q_TS_VIX_futures(contracts, start, end, param, collection):
     df.set_index('Trade Date', inplace=True)
 
     # Pivot DataFrame to have 'Futures' as columns
-    data_to_return = df.pivot(columns='Futures', values='Total Volume')
+    data_to_return = df.pivot(columns='Futures', values=param)
 
     # fill nan with 0
     data_to_return.fillna(value=0, inplace=True)
@@ -102,13 +105,79 @@ ts = q_TS_ETFs(tickers=tickers,
 
 db = client.Listed_Futures
 collection = db.CBOE_VIX_Futures_monthly
-start = '2014-01-01'
+start = '2013-01-01'
 end = '2024-03-31'
-contracts = collection.distinct("Futures")
+
+# Project only the "Open" and "Date" fields
+projection = {"_id": 0, "Futures": 1, 'Expiry': 1}
+
+# Execute the query
+futures_map = pd.DataFrame(list(collection.find({}, projection))).drop_duplicates().sort_values(by='Expiry')
+
+contracts = list(futures_map.Futures)
+
+# Volume
 param = 'Total Volume'
 
-ts = q_TS_VIX_futures(contracts=contracts,
+tot_vol = q_TS_VIX_futures(contracts=contracts,
                       start=start,
                       end=end,
                       param=param,
                       collection=collection)
+
+tot_vol = tot_vol[list(futures_map.Futures)] # order by maturity
+
+# Open
+param = 'Open'
+
+open = q_TS_VIX_futures(contracts=contracts,
+                      start=start,
+                      end=end,
+                      param=param,
+                      collection=collection)
+
+open = open[list(futures_map.Futures)] # order by maturity
+
+# Close
+param = 'Close'
+
+close = q_TS_VIX_futures(contracts=contracts,
+                      start=start,
+                      end=end,
+                      param=param,
+                      collection=collection)
+
+close = close[list(futures_map.Futures)] # order by maturity
+
+# building the VIX term structure
+idx = 950
+today = open.index[idx]
+open_i = open[open.index == today]
+vol_i=tot_vol[tot_vol.index == today]
+today_contracts = list(vol_i.columns[(vol_i > 0).values[0]])
+today_expiries = [futures_map[futures_map.Futures == ct]['Expiry'].values[0] for ct in today_contracts]
+today_open = [open_i[ct].values[0] for ct in today_contracts]
+tte = [exp-today for exp in today_expiries]
+today_vix = ts[ts.index == today]['VIX'].values[0]
+
+# cublic spline
+x = np.array([today.to_datetime64()] + today_expiries)
+y = np.array([today_vix] + today_open)
+cs = interpolate.CubicSpline(x, y)
+
+
+dt = today.to_datetime64() + [np.timedelta64(k, 'D') for k in np.arange(tte[-1].days)]
+
+interpol_dt = today.to_datetime64() + [np.timedelta64((k+1)*30, 'D') for k in np.arange(8)]
+
+# plot
+fig, ax = plt.subplots(figsize=(6.5, 4))
+ax.plot(x, y, 'o', label='data')
+ax.plot(dt, cs(dt), label="S")
+ax.plot(interpol_dt, cs(interpol_dt), 'o', label="interpol")
+plt.show()
+
+for i in range(len(interpol_dt)):
+    print("month " + str(i+1))
+    print(interpol_dt[i])
+    print(cs(interpol_dt[i]))
