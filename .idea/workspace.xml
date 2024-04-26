@@ -4,9 +4,7 @@
 <<<<<<< HEAD
     <list default="true" id="0d046d82-ccc9-4f0c-9f32-b854f471255b" name="Changes" comment="created file YF_ETFs_hist_data.py to store YF ETFs data in mongoDB" />
 =======
-    <list default="true" id="1420a062-21e4-452c-82f9-5e2fb48c87dc" name="Changes" comment="commit 16/04">
-      <change afterPath="$PROJECT_DIR$/CBOE_VIX_Futures_hist_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/store_data_mongoDB_collection.py" afterDir="false" />
+    <list default="true" id="1420a062-21e4-452c-82f9-5e2fb48c87dc" name="Changes" comment="wrote store_data_mongoDB_collection.py in a separated file for general use and downloaded VIX futures monthly data in mongoDB">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
 >>>>>>> origin/main
@@ -140,7 +138,14 @@
       <option name="project" value="LOCAL" />
       <updated>1713297886124</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="wrote store_data_mongoDB_collection.py in a separated file for general use and downloaded VIX futures monthly data in mongoDB">
+      <created>1713468428321</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1713468428322</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
 >>>>>>> origin/main
     <servers />
   </component>
@@ -162,7 +167,8 @@
 =======
     <MESSAGE value="Created q_TS_ETFs(), the function to query time series on Yahoo_Finance DB /ETFs collection." />
     <MESSAGE value="commit 16/04" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit 16/04" />
+    <MESSAGE value="wrote store_data_mongoDB_collection.py in a separated file for general use and downloaded VIX futures monthly data in mongoDB" />
+    <option name="LAST_COMMIT_MESSAGE" value="wrote store_data_mongoDB_collection.py in a separated file for general use and downloaded VIX futures monthly data in mongoDB" />
 >>>>>>> origin/main
   </component>
 </project>
