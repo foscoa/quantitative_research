@@ -1,103 +1,13 @@
-
-import numpy as np
 import calendar
-
+import numpy as np
+from plotly.subplots import make_subplots
+import pandas as pd
 import matplotlib
 import plotly.graph_objects as go
 import seaborn as sns
-from dash import Dash, html, dcc, dash_table
+from dash import dash_table
 from dash.dash_table import FormatTemplate
-from plotly.subplots import make_subplots
 
-from utils.query_mongoDB_functions import *
-
-# database connection
-url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
-client = pymongo.MongoClient(url)
-
-
-# QUERY ETFs ----
-
-db = client['ETFs']
-collection = db['Yahoo_Finance']
-
-print(client.list_database_names())
-
-start = '2014-01-02'
-end = '2024-03-31'
-tickers = ['SPY', 'VIXY', 'SVXY', '^VIX']
-param = "Open"
-
-ETFs = q_TS_ETFs(tickers=tickers,
-               start=start,
-               end=end,
-               param=param,
-               collection=collection)
-
-# QUERY VIX Futures ----
-
-db = client.Listed_Futures
-collection = db.CBOE_VIX_Futures_monthly
-start = '2013-01-02'
-end = '2024-03-31'
-# Project only the "Open" and "Date" fields
-projection = {"_id": 0, "Futures": 1, 'Expiry': 1}
-
-# Execute the query
-futures_map = pd.DataFrame(list(collection.find({}, projection))).drop_duplicates().sort_values(by='Expiry')
-
-contracts = list(futures_map.Futures)
-
-
-tot_vol = q_TS_VIX_futures(contracts=contracts,
-                      start=start,
-                      end=end,
-                      param='Total Volume',
-                      collection=collection)
-
-tot_vol = tot_vol[list(futures_map.Futures)] # order by maturity
-
-# Open
-param = 'Open'
-
-open = q_TS_VIX_futures(contracts=contracts,
-                      start=start,
-                      end=end,
-                      param=param,
-                      collection=collection)
-
-open = open[list(futures_map.Futures)] # order by maturity
-
-
-# QUERY Future interpol
-
-db = client.Listed_Futures
-collection = db.CBOE_VIX_Futures_monthly_INT
-vix_int = q_TS_VIX_futures_INT(start=start,
-                           end=end,
-                           param=param,
-                           collection=collection)
-
-# merging
-data = pd.merge(ETFs, vix_int, left_index=True, right_index=True, how='left')
-data.columns = data.columns.str.replace(" ", "_").to_list()
-# strategy LSV
-starting_capital = 100000
-pct_risk = 0.5
-allocation =starting_capital*pct_risk
-
-# long position in SVXY
-data['LSV_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 2).astype(int)
-
-# long position in VIXY
-data['LSV_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < -2).astype(int)
-
-# PnL
-data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.LSV_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.LSV_VIXY
-data['LSV_PnL'] = data['LSV_PnL'].fillna(0)
-
-#cumsum
-data['LSV_cum_PnL'] = data.LSV_PnL.cumsum()
 
 class BacktestTradingStrategy:
     def __init__(self,
@@ -289,7 +199,7 @@ class BacktestTradingStrategy:
                          col=1)
 
         fig.update_layout(
-            title=strategy.name + "<br>"
+            title=self.name + "<br>"
                   + "<sub>"
                   + "CAGR = " + str(round(self.calculate_summary_statistics()['CAGR'] * 100, 2)) + "%,   "
                   + "mean p.a. = " + str(round(self.calculate_summary_statistics()['ann. mean'] * 100, 2)) + "%,   "
@@ -360,62 +270,8 @@ class BacktestTradingStrategy:
                                                 + ' && {' + j + '} !=0',
                                 'column_id': j},
                             'backgroundColor': str(master_palette[i])
-                        } for i in range(0, n_palette+1) for j in strategy.strategy_monthly_returns_table().columns
+                        } for i in range(0, n_palette+1) for j in self.strategy_monthly_returns_table().columns
                     ]
 
 
                 )
-
-
-asset_prices = data[['VIXY', 'SVXY']]
-signal = data[['LSV_VIXY', 'LSV_SVXY']]
-signal.columns = ['VIXY', 'SVXY']
-starting_capital = 100000
-benchmark = data.SPY
-
-# Define Strategy instance
-strategy = BacktestTradingStrategy(
-    name='LSV',
-    description='Long-Short VIX',
-    asset_prices=asset_prices,
-    benchmark=benchmark,
-    signal=signal,
-    starting_capital=starting_capital
-)
-
-# APP
-
-app = Dash(__name__)
-
-# app
-app.layout = html.Div(
-    children=[
-
-        html.Div(
-            children=[
-                dcc.Graph(
-                    id='example-graph',
-                    figure=strategy.generate_report(),
-                    style= {'height': '70vh'}
-                ),
-            ],
-            style={'height': '70vh'}
-        ),
-
-        html.Div(
-            children=[
-                strategy.generate_dash_monthly_returns_table()
-            ],
-            style={'marginLeft': 80, 'marginRight': 120}
-        ),
-
-])
-
-if __name__ == '__main__':
-    app.run_server(debug=False, port=5000)
-
-
-
-
-
-
