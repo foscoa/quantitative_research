@@ -1,6 +1,5 @@
 
 from dash import Dash, html, dcc
-
 from utils.query_mongoDB_functions import *
 from backtest.backtest import *
 
@@ -85,14 +84,14 @@ data = pull_data()
 # Strategy -------------------------------------------------------------------------------------------------------------
 
 starting_capital = 100000
-pct_risk = 0.5
+pct_risk = 0.7
 allocation =starting_capital*pct_risk
 
 # long position in SVXY
 data['LSV_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 2).astype(int)
 
 # long position in VIXY
-data['LSV_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < -2).astype(int)
+data['LSV_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
 
 # PnL
 data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.LSV_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.LSV_VIXY
@@ -147,7 +146,7 @@ app.layout = html.Div(
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=5000)
+    app.run_server(debug=False, port=5001)
 
 
 

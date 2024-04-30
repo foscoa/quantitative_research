@@ -115,8 +115,8 @@ class BacktestTradingStrategy:
 
     def drawdown(self):
 
-        PT_cum_ret = self.portfolio_value() / self.starting_capital -1
-        DD = (PT_cum_ret - PT_cum_ret.cummax())
+        PT_cum_ret = self.portfolio_value() / self.starting_capital
+        DD = (PT_cum_ret / PT_cum_ret.cummax() - 1)
 
         return DD
 
