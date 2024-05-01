@@ -87,24 +87,20 @@ starting_capital = 100000
 pct_risk = 0.7
 allocation =starting_capital*pct_risk
 
-# long position in SVXY
-data['LSV_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 2).astype(int)
+# quantity in SVXY
+data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 2).astype(int)
 
-# long position in VIXY
-data['LSV_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
+# quantity in VIXY
+data['q_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
 
 # PnL
-data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.LSV_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.LSV_VIXY
+data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.q_VIXY
 data['LSV_PnL'] = data['LSV_PnL'].fillna(0)
 
-#cumsum
-data['LSV_cum_PnL'] = data.LSV_PnL.cumsum()
-
-
+# initialize variables
 asset_prices = data[['VIXY', 'SVXY']]
-signal = data[['LSV_VIXY', 'LSV_SVXY']]
+signal = data[['q_VIXY', 'q_SVXY']]
 signal.columns = ['VIXY', 'SVXY']
-starting_capital = 100000
 benchmark = data.SPY
 
 # Define Strategy instance
