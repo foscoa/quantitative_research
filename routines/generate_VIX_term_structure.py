@@ -91,50 +91,8 @@ for today in open.index[open.index >= ts.index[0]]:
         y = np.array([today_vix] + today_open)
         cs = interpolate.CubicSpline(x, y)
 
-
         dt = today.to_datetime64() + [np.timedelta64(k, 'D') for k in np.arange(tte[-1].days)]
-
         interpol_dt = today.to_datetime64() + [np.timedelta64((k+1)*30, 'D') for k in np.arange(8)]
-
-        # plot
-        fig, ax = plt.subplots(figsize=(6.5, 4))
-        ax.plot(x, y, 'o', label='data')
-        ax.plot(dt, cs(dt), label="S")
-        ax.plot(interpol_dt, cs(interpol_dt), 'o', label="interpol")
-        plt.show()
-
-
-        trace2 = go.Scatter(
-            x=x,
-            y=y,
-            mode='markers',
-            name='Traded Contracts',
-            marker=dict(size=12,
-                        color='darkred'),
-        )
-        trace1 = go.Scatter(
-            x=dt,
-            y=cs(dt),
-            mode='lines',
-            name='Fit',
-            opacity=0.5
-        )
-
-        trace3 = go.Scatter(
-            x=interpol_dt,
-            y=cs(interpol_dt),
-            mode='markers',
-            name='Interpolated Points',
-            marker=dict(size=12,
-                        symbol='square-open',
-                        color='midnightblue'),
-        )
-
-        data = [trace1, trace2, trace3]
-
-        fig = go.Figure(data=data)
-        fig.show()
-
 
 
         count = 1
