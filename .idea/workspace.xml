@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="work on plotting VIX term structure">
-      <change afterPath="$PROJECT_DIR$/routines/app_VIX_term_structure.py" afterDir="false" />
+    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="worked on app to plot VIX term structure">
+      <change afterPath="$PROJECT_DIR$/strategies/LSV_TS.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/app_VIX_term_structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/app_VIX_term_structure.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -32,11 +34,12 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Users/Fosco/Desktop/quantitative_research/routines"
+    "last_opened_file_path": "C:/Users/Fosco/Desktop/quantitative_research/strategies"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Fosco\Desktop\quantitative_research\strategies" />
       <recent name="C:\Users\Fosco\Desktop\quantitative_research\routines" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -94,7 +97,14 @@
       <option name="project" value="LOCAL" />
       <updated>1714763453073</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="worked on app to plot VIX term structure">
+      <created>1715014687290</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1715014687290</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -111,17 +121,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="clean up" />
     <MESSAGE value="work on plotting VIX term structure" />
-    <option name="LAST_COMMIT_MESSAGE" value="work on plotting VIX term structure" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/routines/app_VIX_term_structure.py</url>
-          <line>171</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="worked on app to plot VIX term structure" />
+    <option name="LAST_COMMIT_MESSAGE" value="worked on app to plot VIX term structure" />
   </component>
 </project>

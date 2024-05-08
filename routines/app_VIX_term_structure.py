@@ -1,107 +1,84 @@
-import pymongo
+import sys
+sys.path.extend(['C:\\Users\\Fosco\\Desktop\\quantitative_research'])
+
 from datetime import date, timedelta
-import pandas as pd
 import numpy as np
 from scipy import interpolate
-import matplotlib.pyplot as plt
 from utils.query_mongoDB_functions import *
 import plotly.graph_objs as go
-
 from dash import Dash, html, dcc, Input, Output, callback
 
-url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
-client = pymongo.MongoClient(url)
+def query_dates(client):
+    # find all common dates between yahoo and CBOE
+    dates_CBOE = pd.DataFrame(list(
+        client.Listed_Futures.CBOE_VIX_Futures_monthly.find({}, {"_id": 0, "Trade Date": 1}))
+    ).drop_duplicates()
+    dates_CBOE = list(dates_CBOE['Trade Date'])
 
-# QUERY ETFs ----
+    dates_vix = pd.DataFrame(list(
+        client.ETFs.Yahoo_Finance.find({'Ticker': '^VIX'}, {"_id": 0, "Date": 1}))
+    ).drop_duplicates()
+    dates_vix = list(dates_vix['Date'])
 
-db = client['ETFs']
-collection = db['Yahoo_Finance']
+    return [date for date in dates_CBOE if date in dates_vix]
+
+def generate_plot_VIX_term_structure(date, param, client):
+
+    # QUERY VIXs -------------------------------------------------------------------------------------------------------
+    vix = q_TS_ETFs(tickers=['^VIX'],
+                    start=date,
+                    end=date,
+                    param=param,
+                    collection=client.ETFs.Yahoo_Finance)
+
+    # QUERY VIX Futures ------------------------------------------------------------------------------------------------
+
+    # Find all contracts sorted by maturity
+    projection = {"_id": 0, "Futures": 1, 'Expiry': 1}
+
+    # Execute the query
+    futures_map = pd.DataFrame(list(client.Listed_Futures.CBOE_VIX_Futures_monthly.find({}, projection))
+                               ).drop_duplicates().sort_values(by='Expiry')
+
+    contracts = list(futures_map.Futures)
+
+    # Total volume
+    tot_vol = q_TS_VIX_futures(contracts=contracts,
+                               start=date,
+                               end=date,
+                               param='Total Volume',
+                               collection=client.Listed_Futures.CBOE_VIX_Futures_monthly)
 
 
-start = '2013-01-01'
-end = '2024-03-31'
-tickers = ['^VIX']
-param = "Open"
+    tot_vol = tot_vol[[fut for fut in contracts if fut in tot_vol.columns]] # order by maturity
 
-ts = q_TS_ETFs(tickers=tickers,
-               start=start,
-               end=end,
-               param=param,
-               collection=collection)
+    # VIX price
+    vix_price = q_TS_VIX_futures(contracts=contracts,
+                                 start=date,
+                                 end=date,
+                                 param=param,
+                                 collection=client.Listed_Futures.CBOE_VIX_Futures_monthly)
 
-# QUERY VIX ----
-
-db = client.Listed_Futures
-collection = db.CBOE_VIX_Futures_monthly
-start = '2013-01-01'
-end = '2024-03-31'
-
-# Project only the "Open" and "Date" fields
-projection = {"_id": 0, "Futures": 1, 'Expiry': 1}
-
-# Execute the query
-futures_map = pd.DataFrame(list(collection.find({}, projection))).drop_duplicates().sort_values(by='Expiry')
-
-contracts = list(futures_map.Futures)
+    vix_price = vix_price[[fut for fut in contracts if fut in vix_price.columns]] # order by maturity
 
 
-tot_vol = q_TS_VIX_futures(contracts=contracts,
-                      start=start,
-                      end=end,
-                      param='Total Volume',
-                      collection=collection)
+    # building the VIX term structure
 
-tot_vol = tot_vol[list(futures_map.Futures)] # order by maturity
-
-# Open
-params = ['Open', 'High', 'Close', 'Low']
-
-open = q_TS_VIX_futures(contracts=contracts,
-                      start=start,
-                      end=end,
-                      param=param,
-                      collection=collection)
-
-open = open[list(futures_map.Futures)] # order by maturity
-
-# Close
-param = 'Close'
-
-close = q_TS_VIX_futures(contracts=contracts,
-                      start=start,
-                      end=end,
-                      param=param,
-                      collection=collection)
-
-close = close[list(futures_map.Futures)] # order by maturity
-
-VIX_list = list()
-
-# building the VIX term structure
-
-today = ts.index[200]
-
-def plot_VIX_term_structure(today):
-
-    open_i = open[open.index == today]
-    vol_i=tot_vol[tot_vol.index == today]
-    today_contracts = list(vol_i.columns[(vol_i > 0).values[0]])
+    today_contracts = list(tot_vol.columns[(tot_vol > 0).values[0]])
     today_expiries = [futures_map[futures_map.Futures == ct]['Expiry'].values[0] for ct in today_contracts]
     today_expiries[0] = today_expiries[0] + 1*10**9*60*60*5 # to avoid problems if first contract expires today
-    today_open = [open_i[ct].values[0] for ct in today_contracts]
-    tte = [exp-today for exp in today_expiries]
-    today_vix = ts[ts.index == today]['VIX'].values[0]
+    today_prices = list(vix_price.values[0])
+    tte = [exp-np.datetime64(date) for exp in today_expiries]
+    today_vix = vix.values[0][0]
 
     # cublic spline
-    x = np.array([today.to_datetime64()] + today_expiries)
-    y = np.array([today_vix] + today_open)
+    date_long_format = np.datetime64(date+ 'T00:00:00.000000000')
+    x = np.array([date_long_format] + today_expiries)
+    y = np.array([today_vix] + today_prices)
     cs = interpolate.CubicSpline(x, y)
 
-
-    dt = today.to_datetime64() + [np.timedelta64(k, 'D') for k in np.arange(tte[-1].days)]
-
-    interpol_dt = today.to_datetime64() + [np.timedelta64((k+1)*30, 'D') for k in np.arange(8)]
-
+    dt = date_long_format + [np.timedelta64(k, 'D') for k in np.arange(int((tte / np.timedelta64(1, 'D'))[-1]))]
+    interpol_dt = date_long_format + [np.timedelta64((k + 1) * 30, 'D') for k in np.arange(8)]
 
     trace1 = go.Scatter(
         x=dt,
@@ -131,8 +108,8 @@ def plot_VIX_term_structure(today):
     )
 
     trace4 = go.Scatter(
-        x=[today],
-        y=[today_vix],
+        x=np.array([date_long_format]),
+        y=np.array([today_vix]),
         mode='markers',
         name='VIX',
         marker=dict(size=12,
@@ -145,36 +122,55 @@ def plot_VIX_term_structure(today):
 
     fig.update_layout(
         title="VIX Term Structure" + "<br>"
-                      + "<sub>"
-                      + "as of " + today.day_name() + ", " + str(today)[0:10] + ". "
-                      + "Source: " + "open" +
-                      " </sub>" +
+              + "<sub>"
+              + "as of " + date + ". "
+              + "Source: " + param +
+              " </sub>" +
 
-                      "<br>",
+              "<br>",
 
     )
 
     return fig
 
-fig = plot_VIX_term_structure(today)
+def validate(date_text):
+    try:
+        if date_text != datetime.strptime(date_text, "%Y-%m-%d").strftime('%Y-%m-%d'):
+            raise ValueError
+        return True
+    except ValueError:
+        return False
 
+# database connection
+url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
+client = pymongo.MongoClient(url)
 
-# APP -----------------
-
-dates = [date for date in open.index if date in ts.index]
 
 # Generate complete list of dates
-date_compl = [dates[0] + timedelta(days=i) for i in range((dates[-1] - dates[0]).days + 1)]
+dates = query_dates(client=client)
+date_compl = [np.min(dates) + timedelta(days=i) for i in range((np.max(dates) - np.min(dates)).days + 1)]
 
+# choose parameter
+param = "Open"
 
+# date = '2022-03-16'
+#
+#
+# fig = generate_plot_VIX_term_structure(date=date,
+#                                        param=param,
+#                                        client=client)
+# fig.show()
+
+# APP -----------------
 app = Dash(__name__)
 
 app.layout = html.Div([
+    html.Br(),
     dcc.DatePickerSingle(
         id='my-date-picker-single',
-        min_date_allowed=dates[0],
-        max_date_allowed=dates[-1],
-        date=dates[0],
+        min_date_allowed=np.min(dates),
+        max_date_allowed=np.max(dates),
+        date=np.max(dates),
         disabled_days=[date for date in date_compl if date not in dates]
     ),
     html.Br(),
@@ -182,21 +178,25 @@ app.layout = html.Div([
             children=[
                 dcc.Graph(
                     id='example-graph',
-                    figure=fig,
-                    style= {'height': '70vh'}
+                    style= {'height': '85vh'}
                 ),
-            ]),
-    html.Div(id='output-container-date-picker-single')
+            ])
 ])
-
 
 @callback(
     Output('example-graph', 'figure'),
     Input('my-date-picker-single', 'date'))
 def update_output(date_value):
-    if date_value is not None:
-        return plot_VIX_term_structure(pd.Timestamp(date_value))
-
+    if (date_value is not None):
+        if(validate(date_value)):
+            print(date_value)
+            return generate_plot_VIX_term_structure(date=date_value.split('T')[0],
+                                                param=param,
+                                                client=client)
+        else:
+            return go.Figure()
+    else:
+        return go.Figure()
 
 if __name__ == '__main__':
     app.run_server(debug=False, port=5002)

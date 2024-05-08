@@ -96,13 +96,14 @@ for today in open.index[open.index >= ts.index[0]]:
 
 
         count = 1
-        for date in interpol_dt[1:]:
+        for date in interpol_dt:
 
             dict = {
                 "Point": "month " + str(count),
                 "Date Iterpolation": datetime.utcfromtimestamp(date.astype('int64') * 1e-9),
                 "Date": datetime.utcfromtimestamp(today.to_datetime64().astype('int64') * 1e-9),
-                "Open": cs(date).tolist()
+                "Open": cs(date).tolist(),
+                "Open_nu1": cs(date, nu=1)*1e+15
             }
 
             # # insert in database
