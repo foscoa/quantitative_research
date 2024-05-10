@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="worked on app to plot VIX term structure">
-      <change afterPath="$PROJECT_DIR$/strategies/LSV_TS.py" afterDir="false" />
+    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="finished app VIX TS and started exploring with TS slope">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routines/app_VIX_term_structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/app_VIX_term_structure.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strategies/LSV.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LSV.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,13 +28,13 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Users/Fosco/Desktop/quantitative_research/strategies"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Fosco/Desktop/quantitative_research/strategies&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Fosco\Desktop\quantitative_research\strategies" />
@@ -104,7 +102,14 @@
       <option name="project" value="LOCAL" />
       <updated>1715014687290</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="finished app VIX TS and started exploring with TS slope">
+      <created>1715198177498</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1715198177499</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -122,6 +127,7 @@
     <MESSAGE value="clean up" />
     <MESSAGE value="work on plotting VIX term structure" />
     <MESSAGE value="worked on app to plot VIX term structure" />
-    <option name="LAST_COMMIT_MESSAGE" value="worked on app to plot VIX term structure" />
+    <MESSAGE value="finished app VIX TS and started exploring with TS slope" />
+    <option name="LAST_COMMIT_MESSAGE" value="finished app VIX TS and started exploring with TS slope" />
   </component>
 </project>
