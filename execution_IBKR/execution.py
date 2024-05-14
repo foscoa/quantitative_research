@@ -1,15 +1,16 @@
 from ib_async import *
+import pandas as pd
+import time
 
-# util.startLoop()  # uncomment this line when in a notebook
+while(1>0):
 
-ib = IB()
-ib.connect('127.0.0.1', 7497, clientId=1)
+    ib = IB()
+    ib.connect('127.0.0.1', 7496, clientId=1)
 
-contract = Forex('EURUSD')
-bars = ib.reqHistoricalData(
-    contract, endDateTime='', durationStr='30 D',
-    barSizeSetting='1 hour', whatToShow='MIDPOINT', useRTH=True)
+    list = ib.accountSummary()
+    print('Margin data saved as of ' + time.asctime())
+    account_summary = pd.DataFrame([item for item in list if (item.tag == 'InitMarginReq') or (item.tag == 'MaintMarginReq')])
 
-# convert to pandas dataframe (pandas needs to be installed):
-df = util.df(bars)
-print(df)
+    ib.disconnect()
+
+    time.sleep(10)

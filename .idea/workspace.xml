@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="finished app VIX TS and started exploring with TS slope">
+    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="worked on LSV strategy">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/quantitative_research.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/quantitative_research.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strategies/LSV.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LSV.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/execution_IBKR/execution.py" beforeDir="false" afterPath="$PROJECT_DIR$/execution_IBKR/execution.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,13 +30,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Fosco/Desktop/quantitative_research/strategies&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/Fosco/Desktop/quantitative_research/strategies",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Fosco\Desktop\quantitative_research\strategies" />
@@ -109,7 +112,14 @@
       <option name="project" value="LOCAL" />
       <updated>1715198177499</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="worked on LSV strategy">
+      <created>1715369103790</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1715369103790</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -128,6 +138,7 @@
     <MESSAGE value="work on plotting VIX term structure" />
     <MESSAGE value="worked on app to plot VIX term structure" />
     <MESSAGE value="finished app VIX TS and started exploring with TS slope" />
-    <option name="LAST_COMMIT_MESSAGE" value="finished app VIX TS and started exploring with TS slope" />
+    <MESSAGE value="worked on LSV strategy" />
+    <option name="LAST_COMMIT_MESSAGE" value="worked on LSV strategy" />
   </component>
 </project>
