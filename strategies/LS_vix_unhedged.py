@@ -71,20 +71,9 @@ def pull_data():
                                param=param,
                                collection=collection)
 
-    # pull VIX futures interpolated term structure ---------------------------------------------------------------------
-
-    db = client.Listed_Futures
-    collection = db.CBOE_VIX_Futures_monthly_INT
-    vix_int_nu1 = q_TS_VIX_futures_INT(start=start,
-                               end=end,
-                               param="Open_nu1",
-                               collection=collection)
-
-
     # merging data -----------------------------------------------------------------------------------------------------
 
-    vix_int_tot = pd.merge(vix_int, vix_int_nu1, left_index=True, right_index=True, how='left')
-    data = pd.merge(ETFs, vix_int_tot, left_index=True, right_index=True, how='left')
+    data = pd.merge(ETFs, vix_int, left_index=True, right_index=True, how='left')
     data.columns = data.columns.str.replace(" ", "_").to_list()
 
     return data
@@ -99,12 +88,12 @@ pct_risk = 0.7
 allocation =starting_capital*pct_risk
 
 # quantity in SVXY
-data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 2).astype(int)
+data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 0).astype(int)
 
 # quantity in VIXY
 data['q_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
 
-# PnL
+# PnL - the definition is: PnL = market value at opening (t+1) - market value at opening (t)
 data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.q_VIXY
 data['LSV_PnL'] = data['LSV_PnL'].fillna(0)
 
@@ -114,10 +103,11 @@ signal = data[['q_VIXY', 'q_SVXY']]
 signal.columns = ['VIXY', 'SVXY']
 benchmark = data.SPY
 
-# Define Strategy instance
+# initialize backtest istance
 strategy = BacktestTradingStrategy(
-    name='LSV',
-    description='Long-Short VIX',
+    name='LSV unhedged',
+    description='The strategy goes long in SVXY if a positive basis exists between the VIX and the 1-month '
+                'interpolated VIX value',
     asset_prices=asset_prices,
     benchmark=benchmark,
     signal=signal,

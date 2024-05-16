@@ -3,6 +3,9 @@ from dash import Dash, html, dcc
 from utils.query_mongoDB_functions import *
 from backtest.backtest import *
 
+import statsmodels.api as sm
+from statsmodels.regression.rolling import RollingOLS
+
 # database connection
 url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
 client = pymongo.MongoClient(url)
@@ -71,9 +74,20 @@ def pull_data():
                                param=param,
                                collection=collection)
 
+    # pull VIX futures interpolated term structure ---------------------------------------------------------------------
+
+    db = client.Listed_Futures
+    collection = db.CBOE_VIX_Futures_monthly_INT
+    vix_int_nu1 = q_TS_VIX_futures_INT(start=start,
+                               end=end,
+                               param="Open_nu1",
+                               collection=collection)
+
+
     # merging data -----------------------------------------------------------------------------------------------------
 
-    data = pd.merge(ETFs, vix_int, left_index=True, right_index=True, how='left')
+    vix_int_tot = pd.merge(vix_int, vix_int_nu1, left_index=True, right_index=True, how='left')
+    data = pd.merge(ETFs, vix_int_tot, left_index=True, right_index=True, how='left')
     data.columns = data.columns.str.replace(" ", "_").to_list()
 
     return data
@@ -87,8 +101,18 @@ starting_capital = 100000
 pct_risk = 0.7
 allocation =starting_capital*pct_risk
 
+
+# Calculate rolling beta
+rolling_window = 25*6  # Choose your desired rolling window size
+endog = data['VIXY'].pct_change().dropna()
+exog = sm.add_constant(data['SPY'].pct_change().dropna())
+rols = RollingOLS(endog, exog, window=rolling_window)
+rres = rols.fit()
+params = rres.params.copy()
+
+
 # quantity in SVXY
-data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 0).astype(int)
+data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 2).astype(int)
 
 # quantity in VIXY
 data['q_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
