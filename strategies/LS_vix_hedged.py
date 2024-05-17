@@ -1,4 +1,3 @@
-
 from dash import Dash, html, dcc
 from utils.query_mongoDB_functions import *
 from backtest.backtest import *
@@ -74,20 +73,20 @@ def pull_data():
                                param=param,
                                collection=collection)
 
-    # pull VIX futures interpolated term structure ---------------------------------------------------------------------
-
-    db = client.Listed_Futures
-    collection = db.CBOE_VIX_Futures_monthly_INT
-    vix_int_nu1 = q_TS_VIX_futures_INT(start=start,
-                               end=end,
-                               param="Open_nu1",
-                               collection=collection)
+    # # pull VIX futures interpolated term structure ---------------------------------------------------------------------
+    #
+    # db = client.Listed_Futures
+    # collection = db.CBOE_VIX_Futures_monthly_INT
+    # vix_int_nu1 = q_TS_VIX_futures_INT(start=start,
+    #                            end=end,
+    #                            param="Open_nu1",
+    #                            collection=collection)
 
 
     # merging data -----------------------------------------------------------------------------------------------------
 
-    vix_int_tot = pd.merge(vix_int, vix_int_nu1, left_index=True, right_index=True, how='left')
-    data = pd.merge(ETFs, vix_int_tot, left_index=True, right_index=True, how='left')
+    # vix_int_tot = pd.merge(vix_int, vix_int_nu1, left_index=True, right_index=True, how='left')
+    data = pd.merge(ETFs, vix_int, left_index=True, right_index=True, how='left')
     data.columns = data.columns.str.replace(" ", "_").to_list()
 
     return data
@@ -98,33 +97,46 @@ data = pull_data()
 # Strategy -------------------------------------------------------------------------------------------------------------
 
 starting_capital = 100000
-pct_risk = 0.7
+pct_risk = 0.5
 allocation =starting_capital*pct_risk
+pct_hedge = 0.25
 
 
 # Calculate rolling beta
 rolling_window = 25*6  # Choose your desired rolling window size
-endog = data['VIXY'].pct_change().dropna()
-exog = sm.add_constant(data['SPY'].pct_change().dropna())
-rols = RollingOLS(endog, exog, window=rolling_window)
-rres = rols.fit()
-params = rres.params.copy()
+def calculate_beta(data, rolling_window, endog):
+    endog = data[endog].pct_change().dropna()
+    exog = sm.add_constant(data['SPY'].pct_change().dropna())
+    rols = RollingOLS(endog, exog, window=rolling_window)
+    rres = rols.fit()
+    return rres.params.copy()
 
+data['beta_VIXY'] = calculate_beta(data=data, endog='VIXY', rolling_window=rolling_window).SPY
+data['beta_SVXY'] = calculate_beta(data=data, endog='SVXY', rolling_window=rolling_window).SPY
+
+data.dropna(inplace=True) # drop na
 
 # quantity in SVXY
-data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 2).astype(int)
+data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 0).astype(int)
 
 # quantity in VIXY
 data['q_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
 
+# quantity in VIXY
+data['q_SPY'] = pct_hedge*(allocation*(-1)*data.beta_SVXY/(data.SPY)).astype(int)*(data.month_1-data.VIX > 0).astype(int) + \
+                pct_hedge*(allocation*(-1)*data.beta_VIXY/(data.SPY)).astype(int)*(data.month_1-data.VIX < 0).astype(int)
+
 # PnL
-data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.q_VIXY
+data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY \
+                  + (data.VIXY.shift(-1) - data.VIXY)*data.q_VIXY \
+                  + (data.SPY.shift(-1) - data.SPY)*data.q_SPY
+
 data['LSV_PnL'] = data['LSV_PnL'].fillna(0)
 
 # initialize variables
-asset_prices = data[['VIXY', 'SVXY']]
-signal = data[['q_VIXY', 'q_SVXY']]
-signal.columns = ['VIXY', 'SVXY']
+asset_prices = data[['VIXY', 'SVXY', 'SPY']]
+signal = data[['q_VIXY', 'q_SVXY', 'q_SPY']]
+signal.columns = ['VIXY', 'SVXY', 'SPY']
 benchmark = data.SPY
 
 # Define Strategy instance
