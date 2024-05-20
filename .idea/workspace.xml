@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="worked again on hedged strategy">
+    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strategies/LS_vix_hedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LS_vix_hedged.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strategies/LS_vix_unhedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LS_vix_unhedged.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/query_mongoDB_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/query_mongoDB_functions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,6 +19,8 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />

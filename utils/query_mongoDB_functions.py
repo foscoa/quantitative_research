@@ -35,10 +35,8 @@ def q_TS_ETFs(tickers, start, end, param, collection):
             dates.append(document["Date"])
 
         data_to_return = pd.merge(data_to_return,
-                            pd.DataFrame(data=opening_prices, index=dates),
+                            pd.DataFrame(data=opening_prices, index=dates, columns=[tck.replace('^', '')]),
                             left_index=True, right_index=True, how='outer')
-
-    data_to_return.columns = [tck.replace('^', '') for tck in tickers]
 
     return data_to_return
 
