@@ -98,7 +98,7 @@ data = pull_data()
 
 starting_capital = 100000
 pct_risk = 0.5
-allocation =starting_capital*pct_risk
+allocation = starting_capital*pct_risk
 pct_hedge = 0.25
 
 
