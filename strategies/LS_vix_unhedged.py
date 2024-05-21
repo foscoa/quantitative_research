@@ -1,7 +1,7 @@
 
 from dash import Dash, html, dcc
 from utils.query_mongoDB_functions import *
-from backtest.backtest import *
+from apps.backtest import *
 
 # database connection
 url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
@@ -103,7 +103,7 @@ signal = data[['q_VIXY', 'q_SVXY']]
 signal.columns = ['VIXY', 'SVXY']
 benchmark = data.SPY
 
-# initialize backtest istance
+# initialize apps istance
 strategy = BacktestTradingStrategy(
     name='LSV unhedged',
     description='The strategy goes long in SVXY if a positive basis exists between the VIX and the 1-month '
@@ -114,7 +114,7 @@ strategy = BacktestTradingStrategy(
     starting_capital=starting_capital
 )
 
-# backtest app ---------------------------------------------------------------------------------------------------------
+# apps app ---------------------------------------------------------------------------------------------------------
 
 app = Dash(__name__)
 

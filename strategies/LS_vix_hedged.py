@@ -1,6 +1,6 @@
 from dash import Dash, html, dcc
 from utils.query_mongoDB_functions import *
-from backtest.backtest import *
+from apps.backtest import *
 
 import statsmodels.api as sm
 from statsmodels.regression.rolling import RollingOLS
@@ -149,7 +149,7 @@ strategy = BacktestTradingStrategy(
     starting_capital=starting_capital
 )
 
-# backtest app ---------------------------------------------------------------------------------------------------------
+# apps app ---------------------------------------------------------------------------------------------------------
 
 app = Dash(__name__)
 
