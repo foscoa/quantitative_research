@@ -69,7 +69,8 @@ def q_TS_VIX_futures(contracts, start, end, param, collection):
     data_to_return = df.pivot(columns='Futures', values=param)
 
     # fill nan with 0
-    data_to_return.fillna(value=0, inplace=True)
+    if param != 'Expiry':
+        data_to_return.fillna(value=0, inplace=True)
 
     return data_to_return
 

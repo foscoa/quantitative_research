@@ -27,7 +27,7 @@ def pull_data():
                    collection=collection)
 
 
-    # pull VIX futures ETFs data ---------------------------------------------------------------------------------------
+    # pull VIX futures data ---------------------------------------------------------------------------------------
 
     db = client.Listed_Futures
     collection = db.CBOE_VIX_Futures_monthly

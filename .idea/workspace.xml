@@ -2,12 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="fine tuning on strategies">
-      <change afterPath="$PROJECT_DIR$/strategies/XGBoost.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ad_hoc_research/VIX_futures_liquidity_analysis/VIX_futures_liquidity_analysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backtest/backtest.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/backtest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routines/app_VIX_term_structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/app_VIX_term_structure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/strategies/LS_vix_hedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LS_vix_hedged.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strategies/LS_vix_unhedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LS_vix_unhedged.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/query_mongoDB_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/query_mongoDB_functions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,6 +45,7 @@
       <recent name="C:\Users\Fosco\Desktop\quantitative_research\routines" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/ad_hoc_research/VIX_futures_liquidity_analysis" />
       <recent name="C:\Users\Fosco\Desktop\quantitative_research\apps\" />
       <recent name="C:\Users\Fosco\Desktop\quantitative_research\strategies" />
     </key>

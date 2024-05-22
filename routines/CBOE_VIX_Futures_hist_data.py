@@ -1,8 +1,11 @@
-# This is a sample Python script.
+'''
+This script download futures data from the CBOE website, with root "https://cdn.cboe.com/" and
+uploads the results on mongoDB. The url pathes are saved in Listed_Futures (DB)/Product_List (COL).
+The result is saved in Listed_Futures (DB)/CBOE_VIX_Futures_monthly (COL)
+'''
 
 import pymongo
 import pandas as pd
-from datetime import datetime
 from utils.store_data_mongoDB_collection import *
 
 def read_csv_from_url(url):
@@ -15,12 +18,8 @@ def read_csv_from_url(url):
         return None
 
 
-# Create a mongodb client, use default local host
-try:
-    client = pymongo.MongoClient("mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/")
-except Exception:
-    print("Error: " + Exception)
-
+# Create mongodb client
+client = pymongo.MongoClient("mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/")
 db = client['Listed_Futures']
 collection = db['Product_List']
 
