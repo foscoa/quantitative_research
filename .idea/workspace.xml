@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="testing xgboost">
-      <change afterPath="$PROJECT_DIR$/strategies/LS_basis_futures_vix_unhedged.py" afterDir="false" />
+    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="friday evening commitment">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strategies/LS_vix_hedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LS_basis_ETFs_vix_hedged.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strategies/LS_vix_unhedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LS_basis_ETFs_vix_unhedged.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strategies/LS_basis_futures_vix_unhedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/strategies/LS_basis_futures_vix_unhedged.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,14 +28,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/Users/foscoantognini/Documents/quantitative_research/strategies",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/foscoantognini/Documents/quantitative_research/strategies&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/strategies" />

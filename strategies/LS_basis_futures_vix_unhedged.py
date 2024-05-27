@@ -80,33 +80,39 @@ vix_int = q_TS_VIX_futures_INT(start=start,
 # Strategy -------------------------------------------------------------------------------------------------------------
 
 starting_capital = 100000
-pct_risk = 0.7
+pct_risk = 0.5
 allocation =starting_capital*pct_risk
+margin_req = 4000
 
 delta_days = expiry.apply(lambda col: col - expiry.index)
 
-def  calc_weights(x):
-    w = 1 - np.abs((x-pd.Timedelta(days=31)))/np.abs((x.dropna()[0:2]-pd.Timedelta(days=31))).sum()
+def  calc_weights(x, days, shift):
+    w = 1 - np.abs((x-pd.Timedelta(days=days)))/np.abs((x.dropna()[(shift):(shift+2)]
+                                                        -pd.Timedelta(days=days))).sum()
     return w
 
-weights = delta_days.apply(calc_weights, axis=1)
+weights_mon1 = delta_days.apply(calc_weights, args=[31, 0], axis=1)
+weights_mon2 = delta_days.apply(calc_weights, args=[62, 1], axis=1)
 
+# quantity
+q_mon1 = ((weights_mon1 > 0)*1*weights_mon1*starting_capital/margin_req*pct_risk*1000).fillna(0).astype(int)
+q_mon2 = ((weights_mon2 > 0)*1*weights_mon2*starting_capital/margin_req*pct_risk*1000).fillna(0).astype(int)
 
-# quantity in SVXY
-data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 0).astype(int)
-
-# quantity in VIXY
-data['q_VIXY'] = (0.5*allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
+# filter dates
+q_mon1 = q_mon1[q_mon1.index.isin(ETFs.index)]
+q_mon2 = q_mon2[q_mon2.index.isin(ETFs.index)]
+open = open[open.index.isin(ETFs.index)]
+# q_tot
+q_tot = +q_mon2 - q_mon1
+q_tot.columns = open.columns
 
 # PnL - the definition is: PnL = market value at opening (t+1) - market value at opening (t)
-data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.q_VIXY
-data['LSV_PnL'] = data['LSV_PnL'].fillna(0)
+PnL = (open.shift(-1) - open)*q_tot
 
 # initialize variables
-asset_prices = data[['VIXY', 'SVXY']]
-signal = data[['q_VIXY', 'q_SVXY']]
-signal.columns = ['VIXY', 'SVXY']
-benchmark = data.SPY
+asset_prices = open
+signal = q_tot
+benchmark = ETFs.SPY
 
 # initialize apps istance
 strategy = BacktestTradingStrategy(
