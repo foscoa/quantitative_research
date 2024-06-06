@@ -73,38 +73,47 @@ vix_int = q_TS_VIX_futures_INT(start=start,
                            end=end,
                            param=param,
                            collection=collection)
-
+vix_int.columns = vix_int.columns.str.replace(' ', '_')
 
 
 
 # Strategy -------------------------------------------------------------------------------------------------------------
 
-starting_capital = 100000
-pct_risk = 0.5
+starting_capital = 200000
+pct_risk = 0.3
 allocation =starting_capital*pct_risk
 margin_req = 4000
+bid_ask = 0.05
 
 delta_days = expiry.apply(lambda col: col - expiry.index)
 
+# Replace '0 and 1' days with NaT for datetime columns
+delta_days = delta_days.replace({
+    pd.Timedelta('0 days 00:00:00'): pd.NaT,
+    pd.Timedelta('1 days 00:00:00'): pd.NaT
+})
 def  calc_weights(x, days, shift):
-    w = 1 - np.abs((x-pd.Timedelta(days=days)))/np.abs((x.dropna()[(shift):(shift+2)]
-                                                        -pd.Timedelta(days=days))).sum()
+    w = 1 - np.abs((x-pd.Timedelta(days=days)))/np.abs((x.dropna()[(shift):(shift+2)]-pd.Timedelta(days=days))).sum()
     return w
 
-weights_mon1 = delta_days.apply(calc_weights, args=[31, 0], axis=1)
-weights_mon2 = delta_days.apply(calc_weights, args=[62, 1], axis=1)
+weights_mon1 = delta_days.apply(calc_weights, args=[33, 0], axis=1)
+weights_mon2 = delta_days.apply(calc_weights, args=[66, 1], axis=1)
 
 # quantity
-q_mon1 = ((weights_mon1 > 0)*1*weights_mon1*starting_capital/margin_req*pct_risk*1000).fillna(0).astype(int)
-q_mon2 = ((weights_mon2 > 0)*1*weights_mon2*starting_capital/margin_req*pct_risk*1000).fillna(0).astype(int)
+q_mon1 = ((weights_mon1 > 0)*1*weights_mon1*starting_capital/margin_req*pct_risk).fillna(0).astype(int)*1000
+q_mon2 = ((weights_mon2 > 0)*1*weights_mon2*starting_capital/margin_req*pct_risk).fillna(0).astype(int)*1000
 
 # filter dates
 q_mon1 = q_mon1[q_mon1.index.isin(ETFs.index)]
 q_mon2 = q_mon2[q_mon2.index.isin(ETFs.index)]
 open = open[open.index.isin(ETFs.index)]
 # q_tot
-q_tot = +q_mon2 - q_mon1
+q_tot = (+q_mon2 - q_mon1).multiply((vix_int.month_1-ETFs.VIX >= 0).astype(int), axis=0) + \
+        (-1*q_mon2 + q_mon1).multiply((vix_int.month_1-ETFs.VIX < 0).astype(int), axis=0)
+
 q_tot.columns = open.columns
+
+t_cost = np.abs(q_tot.shift(-1) - q_tot).sum(axis=1)*bid_ask*1
 
 # PnL - the definition is: PnL = market value at opening (t+1) - market value at opening (t)
 PnL = (open.shift(-1) - open)*q_tot
@@ -122,7 +131,8 @@ strategy = BacktestTradingStrategy(
     asset_prices=asset_prices,
     benchmark=benchmark,
     signal=signal,
-    starting_capital=starting_capital
+    starting_capital=starting_capital,
+    transaction_costs=t_cost
 )
 
 # apps app ---------------------------------------------------------------------------------------------------------

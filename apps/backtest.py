@@ -16,7 +16,8 @@ class BacktestTradingStrategy:
                  asset_prices,
                  starting_capital = np.nan,
                  benchmark      = np.nan,
-                 signal         = np.nan):
+                 signal         = np.nan,
+                 transaction_costs = np.nan):
 
         # run validations to the received arguments
         assert asset_prices.index.equals(signal.index), "The input - asset_prices - (with the first " \
@@ -34,6 +35,8 @@ class BacktestTradingStrategy:
         self.starting_capital = starting_capital
         self.benchmark = benchmark
         self.signal = signal
+        self.transaction_costs = transaction_costs
+
 
     def assets_daily_PnL(self):
 
@@ -45,12 +48,18 @@ class BacktestTradingStrategy:
 
     def portfolio_daily_PnL(self):
 
-        return pd.DataFrame(data=self.assets_daily_PnL().sum(axis=1),
+        PnL = self.assets_daily_PnL().sum(axis=1) - self.transaction_costs
+
+        return pd.DataFrame(data=PnL,
                             columns=['Portfolio'])
 
     def portfolio_value(self):
 
-        return self.portfolio_daily_PnL().cumsum() + self.starting_capital
+        PT_val = self.portfolio_daily_PnL().shift(1).cumsum() + self.starting_capital
+        PT_val.iloc[0] = self.starting_capital
+        PT_val[PT_val <= 0] = 0
+
+        return PT_val
 
     def portfolio_daily_returns(self):
         portfolio_cumulative_returns = pd.DataFrame(
@@ -118,7 +127,7 @@ class BacktestTradingStrategy:
         PT_cum_ret = self.portfolio_value() / self.starting_capital
         DD = (PT_cum_ret / PT_cum_ret.cummax() - 1)
 
-        return DD
+        return DD.shift(-1)
 
     def cagr(self):
 
@@ -130,6 +139,15 @@ class BacktestTradingStrategy:
         cagr = (float(PT_cum_ret.values[-1])**(1/years))-1
 
         return cagr
+
+    def correlation_with_benchmark(self):
+
+        # building dataframe
+        df = self.benchmark_daily_returns()
+        df['PT'] = self.portfolio_daily_returns()
+
+        return df.corr().iloc[0, 1]
+
 
     def calculate_summary_statistics(self):
 
@@ -145,6 +163,7 @@ class BacktestTradingStrategy:
         summary_stat["sharpe ratio"] = float(PT_excess_returns.mean().values)*252/\
                                        (float(PT_daily_returns.std().values) * np.sqrt(252))
         summary_stat["CAGR"] = self.cagr()
+        summary_stat["corr"] = self.correlation_with_benchmark()
 
         return summary_stat
 
@@ -178,7 +197,7 @@ class BacktestTradingStrategy:
                 x=BM_cum_log_returns.index.to_list(),
                 y=BM_cum_log_returns['Benchmark'].to_list(),
                 line_color='tan',
-                name='S&P500'
+                name=self.benchmark.columns[0]
             ),
             row=1,
             col=1)
@@ -205,7 +224,8 @@ class BacktestTradingStrategy:
                   + "mean p.a. = " + str(round(self.calculate_summary_statistics()['ann. mean'] * 100, 2)) + "%,   "
                   + "std p.a. = " + str(round(self.calculate_summary_statistics()['ann. std'] * 100, 2)) + "%,   "
                   + "max DD = " + str(round(self.calculate_summary_statistics()['max DD'] * 100, 2)) + "%,   "
-                  + "sharpe ratio = " + str(round(self.calculate_summary_statistics()['sharpe ratio'], 2)) +
+                  + "sharpe ratio = " + str(round(self.calculate_summary_statistics()['sharpe ratio'], 2)) + ",   "
+                  + "corr = " + str(round(self.correlation_with_benchmark(), 2)) +
 
                   " </sub>" +
 
