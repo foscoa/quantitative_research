@@ -96,14 +96,32 @@ data = pull_data()
 
 # Strategy -------------------------------------------------------------------------------------------------------------
 
-starting_capital = 100000
-pct_risk = 0.5
-allocation = starting_capital*pct_risk
-pct_hedge = 0.25
+starting_capital = 2000000
+formated_starting_capital = f"{starting_capital:,}".replace(",", "'")
 
+pct_risk = 0.7
+formatted_pct_risk = str(pct_risk*100) +"%"
+
+allocation =starting_capital*pct_risk
+pct_hedge = 0.5
 
 # Calculate rolling beta
 rolling_window = 25*6  # Choose your desired rolling window size
+
+description = f'''
+
+The strategy goes long 100% in SVXY if a positive basis exists, else it goes long 50% in VIXY. 
+
+Basis is defined as: month 1 interpolated point - VIX index
+
+The strategy is hedged entering a beta adjusted position using SPY. Beta is calculated using a 
+{int(rolling_window / 30)} month rolling window
+
+Starting Capital:  {formated_starting_capital}
+Capital allocated to strategy: {formatted_pct_risk}
+
+'''
+
 def calculate_beta(data, rolling_window, endog):
     endog = data[endog].pct_change().dropna()
     exog = sm.add_constant(data['SPY'].pct_change().dropna())
@@ -120,7 +138,7 @@ data.dropna(inplace=True) # drop na
 data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 0).astype(int)
 
 # quantity in VIXY
-data['q_VIXY'] = (allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
+data['q_VIXY'] = (0.5*allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
 
 # quantity in VIXY
 data['q_SPY'] = pct_hedge*(allocation*(-1)*data.beta_SVXY/(data.SPY)).astype(int)*(data.month_1-data.VIX > 0).astype(int) + \
@@ -137,16 +155,18 @@ data['LSV_PnL'] = data['LSV_PnL'].fillna(0)
 asset_prices = data[['VIXY', 'SVXY', 'SPY']]
 signal = data[['q_VIXY', 'q_SVXY', 'q_SPY']]
 signal.columns = ['VIXY', 'SVXY', 'SPY']
-benchmark = data.SPY
+benchmark = pd.DataFrame(data.SPY, columns=['SPY'])
+t_cost = data.q_SVXY*0
 
 # Define Strategy instance
 strategy = BacktestTradingStrategy(
-    name='LSV',
-    description='Long-Short VIX',
+    name= f'Long/Short Volatility ETFs, Positive Basis m1 vs VIX, Hedged {pct_hedge}% with SPY',
+    description=description,
     asset_prices=asset_prices,
     benchmark=benchmark,
     signal=signal,
-    starting_capital=starting_capital
+    starting_capital=starting_capital,
+    transaction_costs=t_cost
 )
 
 # apps app ---------------------------------------------------------------------------------------------------------

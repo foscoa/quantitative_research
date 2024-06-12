@@ -105,10 +105,10 @@ Capital allocated to strategy: {formatted_pct_risk}
 
 
 # quantity in SVXY
-data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > -100).astype(int)
+data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 0).astype(int)
 
 # quantity in VIXY
-data['q_VIXY'] = (0.5*allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < -100).astype(int)
+data['q_VIXY'] = (0.5*allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
 
 # PnL - the definition is: PnL = market value at opening (t+1) - market value at opening (t)
 data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.q_VIXY
@@ -123,7 +123,7 @@ t_cost = data.q_SVXY*0
 
 # initialize apps instance
 strategy = BacktestTradingStrategy(
-    name='Long/Short Volatility ETFs, Positive Basis m1 vs VIX ',
+    name='Long/Short Volatility ETFs, Positive Basis m1 vs VIX',
     description=description,
     asset_prices=asset_prices,
     benchmark=benchmark,
