@@ -1,2 +1,2 @@
 # Quantitative Research
-In this repository we develop quantiative strategies.
+In this repository we develop quantitative strategies.
