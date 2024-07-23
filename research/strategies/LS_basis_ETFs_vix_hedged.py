@@ -103,7 +103,7 @@ pct_risk = 0.7
 formatted_pct_risk = str(pct_risk*100) +"%"
 
 allocation =starting_capital*pct_risk
-pct_hedge = 0.5
+pct_hedge = 1
 
 # Calculate rolling beta
 rolling_window = 25*6  # Choose your desired rolling window size
@@ -142,7 +142,7 @@ data['q_VIXY'] = (0.5*allocation/data.VIXY).astype(int)*(data.month_1-data.VIX <
 
 # quantity in VIXY
 data['q_SPY'] = pct_hedge*(allocation*(-1)*data.beta_SVXY/(data.SPY)).astype(int)*(data.month_1-data.VIX > 0).astype(int) + \
-                pct_hedge*(allocation*(-1)*data.beta_VIXY/(data.SPY)).astype(int)*(data.month_1-data.VIX < 0).astype(int)
+                pct_hedge*0*(allocation*(-1)*data.beta_VIXY/(data.SPY)).astype(int)*(data.month_1-data.VIX < 0).astype(int)
 
 # PnL
 data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY \
