@@ -63,9 +63,26 @@ def main():
     time.sleep(1)  # Sleep to allow connection time
 
     # Request market data for VIX futures
-    vix_localSymbols = ['VIX', 'VXQ4', 'VXU4', 'VXV4', 'VXX4', 'VXZ4', 'VXF5', 'VXG5', 'VXH5']
-    expiries = [datetime.today().strftime("%Y%m%d"), '20240821', '20240918', '20241016', '20241120',
-                '20241218', '20250122', '20250222', '20250318']
+    vix_localSymbols = ['VIX',
+                        'VXQ4',
+                        'VXU4',
+                        'VXV4',
+                        'VXX4',
+                        'VXZ4',
+                        'VXF5',
+                        'VXG5',
+                        #'VXH5'
+                        ]
+    expiries = [datetime.today().strftime("%Y%m%d"),
+                '20240821',
+                '20240918',
+                '20241016',
+                '20241120',
+                '20241218',
+                '20250122',
+                '20250222',
+                # '20250318'
+                ]
     app.start(vix_localSymbols)
 
     time.sleep(10)  # Sleep to allow time for data to be fetched

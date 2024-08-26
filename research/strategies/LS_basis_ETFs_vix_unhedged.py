@@ -103,12 +103,19 @@ Capital allocated to strategy: {formatted_pct_risk}
 
 '''
 
+window = 3
+
+data['roll_VIX'] = data.VIX.rolling(window=window).mean()
+data['roll_month_1'] = data.month_1.rolling(window=window).mean()
+data.dropna(inplace=True)
 
 # quantity in SVXY
-data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(data.month_1-data.VIX > 0).astype(int)
+bool_SVXY = (data.roll_month_1-data.roll_VIX > 0.5)
+data['q_SVXY'] = (allocation/data.SVXY).astype(int)*(bool_SVXY).astype(int)
 
-# quantity in VIXY
-data['q_VIXY'] = (0.5*allocation/data.VIXY).astype(int)*(data.month_1-data.VIX < 0).astype(int)
+# quantity in VIX
+bool_VIXY = (data.roll_month_1-data.roll_VIX < 0.5)
+data['q_VIXY'] = (0.5*allocation/data.VIXY).astype(int)*(bool_VIXY).astype(int)
 
 # PnL - the definition is: PnL = market value at opening (t+1) - market value at opening (t)
 data['LSV_PnL'] = (data.SVXY.shift(-1) - data.SVXY)*data.q_SVXY + (data.VIXY.shift(-1) - data.VIXY)*data.q_VIXY

@@ -1,6 +1,6 @@
 '''
-This script download futures data from the CBOE website, with root "https://cdn.cboe.com/" and
-uploads the results on mongoDB. The url pathes are saved in Listed_Futures (DB)/Product_List (COL).
+This script downloads futures data from the CBOE website, with root "https://cdn.cboe.com/" and
+uploads the results on mongoDB. The url paths are saved in Listed_Futures (DB)/Product_List (COL).
 The result is saved in Listed_Futures (DB)/CBOE_VIX_Futures_monthly (COL)
 '''
 
