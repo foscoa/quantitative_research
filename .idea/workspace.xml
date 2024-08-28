@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="worked on execution algorithm">
-      <change afterPath="$PROJECT_DIR$/routines/scrape_CBOE_names.py" afterDir="false" />
+    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="automate string CBOE">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/execution_IBKR/execution.py" beforeDir="false" afterPath="$PROJECT_DIR$/execution_IBKR/execution.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/research/strategies/LS_basis_ETFs_vix_unhedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/research/strategies/LS_basis_ETFs_vix_unhedged.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/scrape_CBOE_names.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/scrape_CBOE_names.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,7 +176,14 @@
       <option name="project" value="LOCAL" />
       <updated>1721750957593</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="automate string CBOE">
+      <created>1724689537338</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1724689537338</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -207,6 +211,7 @@
     <MESSAGE value="worked on trading strategy" />
     <MESSAGE value="tidied up strategies descriptions" />
     <MESSAGE value="worked on execution algorithm" />
-    <option name="LAST_COMMIT_MESSAGE" value="worked on execution algorithm" />
+    <MESSAGE value="automate string CBOE" />
+    <option name="LAST_COMMIT_MESSAGE" value="automate string CBOE" />
   </component>
 </project>
