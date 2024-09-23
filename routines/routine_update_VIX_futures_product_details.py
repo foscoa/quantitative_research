@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 import re
 import pymongo
 import json
+import time
 
 ### GET NEW DATA FROM CBOE WEBISTE -------------------------------------------------------------------------------------
 
@@ -59,6 +60,12 @@ for year in data.keys():
 
         if not collection.find_one(query):
 
+            # Remove unnecessary fields and adding timestamp
+            curr_data.pop('contract_dt')
+            curr_data.pop('futures_root')
+            curr_data.pop('product_display')
+            curr_data['Timestamp'] = time.ctime()
+
             # Define the new product data to insert if it doesn't exist
             new_product = {"$setOnInsert": curr_data}
 
@@ -67,9 +74,12 @@ for year in data.keys():
 
             # Check if a document was inserted
             if result.matched_count == 0:
-                print(f"Product {current_product} was inserted.")
+                print(f"Product {current_product} with maturity {curr_data['expire_date']} was inserted.")
                 count_new_inserts +=1
 
-print("Total number of added products: " + str(count_new_inserts))
+if count_new_inserts > 0:
+    print("Total number of added products: " + str(count_new_inserts))
+else:
+    print("No new product has been found")
 
 
