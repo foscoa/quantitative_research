@@ -1,0 +1,156 @@
+Index: routines/routine_update_VIX_futures_product_details.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>'''\r\nThis script scrapes product details for VIX future contracts from the CBOE website using BeautifulSoup. It retrieves the\r\n relevant data, checks if the product already exists in MongoDB, and then saves the details if it's a new entry.\r\n'''\r\n\r\nimport requests\r\nfrom bs4 import BeautifulSoup\r\nimport re\r\nimport pymongo\r\nimport json\r\n\r\n### GET NEW DATA FROM CBOE WEBISTE -------------------------------------------------------------------------------------\r\n\r\n# URL of the website\r\nurl = \"https://www.cboe.com/us/futures/market_statistics/historical_data/\"\r\n\r\n# Send a GET request to fetch the HTML content\r\nresponse = requests.get(url)\r\nresponse.raise_for_status()  # Check if the request was successful\r\n\r\n# Parse the HTML content using BeautifulSoup\r\nsoup = BeautifulSoup(response.text, 'html.parser')\r\n\r\n# Search for the script tag that contains the JS variable\r\nscript_tag = soup.find('script', string=re.compile(\"CTX.defaultProductList\")).string.split(\";\")[1].split(\"=\")[1]\r\n\r\n# Convert the string to a dictionary\r\ndata = json.loads(script_tag)\r\n\r\n### UPDATE DATABASE ----------------------------------------------------------------------------------------------------\r\n\r\n# Create mongodb client\r\nclient = pymongo.MongoClient(\"mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/\")\r\ndb = client['Listed_Futures']\r\ncollection = db['Product_List']\r\n\r\n# print last modification time\r\ndef print_last_modification_time(collection):\r\n\r\n    # Print when database was last modified\r\n    last_document = collection.find_one(sort=[('_id', -1)])\r\n\r\n    if last_document:\r\n        # Extract timestamp from ObjectId\r\n        last_modified_time = last_document['_id'].generation_time\r\n        print(f\"Last modification time: {last_modified_time}\")\r\n    else:\r\n        print(\"Collection is empty.\")\r\nprint_last_modification_time(collection=collection)\r\n\r\ncount_new_inserts = 0\r\nfor year in data.keys():\r\n    for curr_data in data[year]:\r\n\r\n        current_product = curr_data['product_display']\r\n\r\n        # Define the query to check if the product exists\r\n        query = {\"product_id\": current_product}\r\n\r\n        if not collection.find_one(query):\r\n\r\n            # Define the new product data to insert if it doesn't exist\r\n            new_product = {\"$setOnInsert\": curr_data}\r\n\r\n            # Perform the upsert operation\r\n            result = collection.update_one(query, new_product, upsert=True)\r\n\r\n            # Check if a document was inserted\r\n            if result.matched_count == 0:\r\n                print(f\"Product {current_product} was inserted.\")\r\n                count_new_inserts +=1\r\n\r\nprint(\"Total number of added products: \" + str(count_new_inserts))\r\n\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/routines/routine_update_VIX_futures_product_details.py b/routines/routine_update_VIX_futures_product_details.py
+--- a/routines/routine_update_VIX_futures_product_details.py	(revision eb88e67f6bb5870df7d0594493a74c9632901a99)
++++ b/routines/routine_update_VIX_futures_product_details.py	(date 1726742512060)
+@@ -1,6 +1,7 @@
+ '''
+ This script scrapes product details for VIX future contracts from the CBOE website using BeautifulSoup. It retrieves the
+- relevant data, checks if the product already exists in MongoDB, and then saves the details if it's a new entry.
++ relevant data, checks if the product already exists in MongoDB (DB: Listed_Futures, COLL: Product_List), and then saves
++  the details if it's a new entry.
+ '''
+ 
+ import requests
+@@ -9,7 +10,7 @@
+ import pymongo
+ import json
+ 
+-### GET NEW DATA FROM CBOE WEBISTE -------------------------------------------------------------------------------------
++### GET NEW DATA FROM CBOE WEBSITE -------------------------------------------------------------------------------------
+ 
+ # URL of the website
+ url = "https://www.cboe.com/us/futures/market_statistics/historical_data/"
+@@ -55,7 +56,7 @@
+         current_product = curr_data['product_display']
+ 
+         # Define the query to check if the product exists
+-        query = {"product_id": current_product}
++        query = {"product_display": current_product}
+ 
+         if not collection.find_one(query):
+ 
+Index: routines/CBOE_VIX_Futures_hist_data.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>'''\r\nThis script downloads futures data from the CBOE website, with root \"https://cdn.cboe.com/\" and\r\nuploads the results on mongoDB. The url paths are saved in Listed_Futures (DB)/Product_List (COL).\r\nThe result is saved in Listed_Futures (DB)/CBOE_VIX_Futures_monthly (COL)\r\n'''\r\n\r\nimport pymongo\r\nimport pandas as pd\r\nfrom utils.store_data_mongoDB_collection import *\r\n\r\ndef read_csv_from_url(url):\r\n    try:\r\n        # Read the CSV file from the URL\r\n        df = pd.read_csv(url)\r\n        return df\r\n    except Exception as e:\r\n        print(\"Error:\", e)\r\n        return None\r\n\r\n\r\n# Create mongodb client\r\nclient = pymongo.MongoClient(\"mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/\")\r\ndb = client['Listed_Futures']\r\ncollection = db['Product_List']\r\n\r\n# Specify the field for which you want to find distinct values\r\nfield = \"duration_type\"\r\n\r\n# Find distinct values for the specified field\r\ndistinct_values = collection.distinct(field)\r\n\r\n# Print the distinct values\r\nprint(\"Distinct values for\", field, \":\", distinct_values)\r\n\r\n# Query:\r\nquery = {\"duration_type\": \"M\"}\r\n\r\n# Projection:\r\nprojection = {\"_id\": 0, \"path\": 1}\r\n\r\n# Perform the query with projection\r\nresult = collection.find(query, projection)\r\n\r\n# Iterate over the result and print each document\r\npaths = [document['path'] for document in result]\r\n\r\n##\r\n\r\ndb = client['Listed_Futures']\r\ncollection = db['CBOE_VIX_Futures_monthly']\r\n\r\nfor path in paths:\r\n    url = \"https://cdn.cboe.com/\" + path\r\n\r\n    # Read data from CBOE website\r\n    data_frame = read_csv_from_url(url)\r\n    expiry_string = url[-14:-4]\r\n    data_frame['Expiry'] = pd.to_datetime(expiry_string)    # create column with expiration date\r\n    data_frame.drop('EFP', inplace=True, axis=1)\r\n    data_frame['Trade Date'] = pd.to_datetime(data_frame['Trade Date'])\r\n\r\n    store_data_in_mongodb(data=data_frame,\r\n                          collection=collection,\r\n                          collection_ID=expiry_string)\r\n\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/routines/CBOE_VIX_Futures_hist_data.py b/routines/CBOE_VIX_Futures_hist_data.py
+--- a/routines/CBOE_VIX_Futures_hist_data.py	(revision eb88e67f6bb5870df7d0594493a74c9632901a99)
++++ b/routines/CBOE_VIX_Futures_hist_data.py	(date 1724871768388)
+@@ -8,6 +8,9 @@
+ import pandas as pd
+ from utils.store_data_mongoDB_collection import *
+ 
++# Create mongodb client
++client = pymongo.MongoClient("mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/")
++
+ def read_csv_from_url(url):
+     try:
+         # Read the CSV file from the URL
+@@ -17,29 +20,18 @@
+         print("Error:", e)
+         return None
+ 
+-
+-# Create mongodb client
+-client = pymongo.MongoClient("mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/")
+-db = client['Listed_Futures']
+-collection = db['Product_List']
++db_Listed_Futures = client['Listed_Futures']
++collection_Product_List = db_Listed_Futures['Product_List']
+ 
+ # Specify the field for which you want to find distinct values
+ field = "duration_type"
+-
+-# Find distinct values for the specified field
+-distinct_values = collection.distinct(field)
++distinct_values = collection_Product_List.distinct(field)
++# print("Distinct values for", field, ":", distinct_values)
+ 
+-# Print the distinct values
+-print("Distinct values for", field, ":", distinct_values)
+-
+-# Query:
++# Find paths for duration type M:
+ query = {"duration_type": "M"}
+-
+-# Projection:
+ projection = {"_id": 0, "path": 1}
+-
+-# Perform the query with projection
+-result = collection.find(query, projection)
++result = collection_Product_List.find(query, projection)
+ 
+ # Iterate over the result and print each document
+ paths = [document['path'] for document in result]
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_18_09_2024__23_37__Changes_.xml
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_18_09_2024__23_37__Changes_.xml b/.idea/shelf/Uncommitted_changes_before_Update_at_18_09_2024__23_37__Changes_.xml
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_18_09_2024__23_37__Changes_.xml	(revision eb88e67f6bb5870df7d0594493a74c9632901a99)
++++ /dev/null	(revision eb88e67f6bb5870df7d0594493a74c9632901a99)
+@@ -1,4 +0,0 @@
+-<changelist name="Uncommitted_changes_before_Update_at_18_09_2024,_23_37_[Changes]" date="1726695435885" recycled="true" deleted="true">
+-  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_09_2024,_23_37_[Changes]/shelved.patch" />
+-  <option name="DESCRIPTION" value="Uncommitted changes before Update at 18.09.2024, 23:37 [Changes]" />
+-</changelist>
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"753b4097-8712-4b1d-8cf7-739a8c1e8765\" name=\"Changes\" comment=\"automate string CBOE\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/routines/scrape_CBOE_names.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/routines/scrape_CBOE_names.py\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"MarkdownSettingsMigration\">\r\n    <option name=\"stateVersion\" value=\"1\" />\r\n  </component>\r\n  <component name=\"ProjectId\" id=\"2foR9vzVPOwm4M5tbIXD7dXrJ8j\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;last_opened_file_path&quot;: &quot;/Users/foscoantognini/Documents/quantitative_research/strategies&quot;,\r\n    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;\r\n  }\r\n}</component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"$PROJECT_DIR$/strategies\" />\r\n      <recent name=\"C:\\Users\\Fosco\\Desktop\\quantitative_research\\strategies\" />\r\n      <recent name=\"C:\\Users\\Fosco\\Desktop\\quantitative_research\\routines\" />\r\n    </key>\r\n    <key name=\"MoveFile.RECENT_KEYS\">\r\n      <recent name=\"$PROJECT_DIR$/ad_hoc_research/VIX_futures_liquidity_analysis\" />\r\n      <recent name=\"C:\\Users\\Fosco\\Desktop\\quantitative_research\\apps\\\" />\r\n      <recent name=\"C:\\Users\\Fosco\\Desktop\\quantitative_research\\strategies\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"753b4097-8712-4b1d-8cf7-739a8c1e8765\" name=\"Changes\" comment=\"\" />\r\n      <created>1714465295527</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1714465295527</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"clean up\">\r\n      <created>1714465333833</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1714465333833</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"clean up\">\r\n      <created>1714468242022</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1714468242022</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"clean up\">\r\n      <created>1714468406193</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1714468406193</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"clean up\">\r\n      <created>1714491990458</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1714491990458</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00005\" summary=\"clean up\">\r\n      <created>1714578279884</created>\r\n      <option name=\"number\" value=\"00005\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1714578279884</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00006\" summary=\"work on plotting VIX term structure\">\r\n      <created>1714763453073</created>\r\n      <option name=\"number\" value=\"00006\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1714763453073</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00007\" summary=\"worked on app to plot VIX term structure\">\r\n      <created>1715014687290</created>\r\n      <option name=\"number\" value=\"00007\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1715014687290</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00008\" summary=\"finished app VIX TS and started exploring with TS slope\">\r\n      <created>1715198177498</created>\r\n      <option name=\"number\" value=\"00008\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00008\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1715198177499</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00009\" summary=\"worked on LSV strategy\">\r\n      <created>1715369103790</created>\r\n      <option name=\"number\" value=\"00009\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00009\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1715369103790</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00010\" summary=\"worked on execution\">\r\n      <created>1715703445188</created>\r\n      <option name=\"number\" value=\"00010\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00010\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1715703445188</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00011\" summary=\"worked on hedged strategy\">\r\n      <created>1715874376312</created>\r\n      <option name=\"number\" value=\"00011\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00011\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1715874376312</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00012\" summary=\"worked again on hedged strategy\">\r\n      <created>1715976120540</created>\r\n      <option name=\"number\" value=\"00012\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00012\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1715976120542</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00013\" summary=\"fine tuning on strategies\">\r\n      <created>1716224464326</created>\r\n      <option name=\"number\" value=\"00013\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00013\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1716224464326</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00014\" summary=\"worked on futures strategy\">\r\n      <created>1716821672703</created>\r\n      <option name=\"number\" value=\"00014\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00014\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1716821672703</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00015\" summary=\"worked on trading strategy\">\r\n      <created>1717688207493</created>\r\n      <option name=\"number\" value=\"00015\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00015\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1717688207494</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00016\" summary=\"tidied up strategies descriptions\">\r\n      <created>1718186330787</created>\r\n      <option name=\"number\" value=\"00016\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00016\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1718186330787</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00017\" summary=\"worked on execution algorithm\">\r\n      <created>1721750957592</created>\r\n      <option name=\"number\" value=\"00017\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00017\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1721750957593</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00018\" summary=\"automate string CBOE\">\r\n      <created>1724689537338</created>\r\n      <option name=\"number\" value=\"00018\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00018\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1724689537338</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"19\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"clean up\" />\r\n    <MESSAGE value=\"work on plotting VIX term structure\" />\r\n    <MESSAGE value=\"worked on app to plot VIX term structure\" />\r\n    <MESSAGE value=\"finished app VIX TS and started exploring with TS slope\" />\r\n    <MESSAGE value=\"worked on LSV strategy\" />\r\n    <MESSAGE value=\"worked on execution\" />\r\n    <MESSAGE value=\"worked on hedged strategy\" />\r\n    <MESSAGE value=\"worked again on hedged strategy\" />\r\n    <MESSAGE value=\"fine tuning on strategies\" />\r\n    <MESSAGE value=\"worked on futures strategy\" />\r\n    <MESSAGE value=\"worked on trading strategy\" />\r\n    <MESSAGE value=\"tidied up strategies descriptions\" />\r\n    <MESSAGE value=\"worked on execution algorithm\" />\r\n    <MESSAGE value=\"automate string CBOE\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"automate string CBOE\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision eb88e67f6bb5870df7d0594493a74c9632901a99)
++++ b/.idea/workspace.xml	(date 1726833626831)
+@@ -1,9 +1,12 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="ChangeListManager">
+-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="automate string CBOE">
++    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="completed routine_update_VIX_futures_product_details.py">
++      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_09_2024__23_37__Changes_.xml" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_20_05_24__22_44__Changes_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_20_05_24__22_44__Changes_.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/routines/scrape_CBOE_names.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/scrape_CBOE_names.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/routines/routine_update_VIX_futures_product_details.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/routine_update_VIX_futures_product_details.py" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -183,7 +186,14 @@
+       <option name="project" value="LOCAL" />
+       <updated>1724689537338</updated>
+     </task>
+-    <option name="localTasksCounter" value="19" />
++    <task id="LOCAL-00019" summary="completed routine_update_VIX_futures_product_details.py">
++      <created>1724865905666</created>
++      <option name="number" value="00019" />
++      <option name="presentableId" value="LOCAL-00019" />
++      <option name="project" value="LOCAL" />
++      <updated>1724865905666</updated>
++    </task>
++    <option name="localTasksCounter" value="20" />
+     <servers />
+   </component>
+   <component name="Vcs.Log.Tabs.Properties">
+@@ -212,6 +222,7 @@
+     <MESSAGE value="tidied up strategies descriptions" />
+     <MESSAGE value="worked on execution algorithm" />
+     <MESSAGE value="automate string CBOE" />
+-    <option name="LAST_COMMIT_MESSAGE" value="automate string CBOE" />
++    <MESSAGE value="completed routine_update_VIX_futures_product_details.py" />
++    <option name="LAST_COMMIT_MESSAGE" value="completed routine_update_VIX_futures_product_details.py" />
+   </component>
+ </project>
+\ No newline at end of file
