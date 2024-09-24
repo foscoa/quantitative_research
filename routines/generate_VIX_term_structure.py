@@ -1,20 +1,14 @@
-import pymongo
-from datetime import datetime
-import pandas as pd
 import numpy as np
 from scipy import interpolate
-import matplotlib.pyplot as plt
 from utils.query_mongoDB_functions import *
-import plotly.graph_objs as go
 
 url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
 client = pymongo.MongoClient(url)
 
-# QUERY ETFs ----
+# QUERY VIX ----
 
 db = client['ETFs']
 collection = db['Yahoo_Finance']
-
 
 start = '2013-01-01'
 end = '2024-03-31'
@@ -32,7 +26,7 @@ ts = q_TS_ETFs(tickers=tickers,
 db = client.Listed_Futures
 collection = db.CBOE_VIX_Futures_monthly
 start = '2013-01-01'
-end = '2024-03-31'
+end = '2024-08-31'
 
 # Project only the "Open" and "Date" fields
 projection = {"_id": 0, "Futures": 1, 'Expiry': 1}
@@ -100,15 +94,11 @@ for today in open.index[open.index >= ts.index[0]]:
 
             dict = {
                 "Point": "month " + str(count),
-                "Date Iterpolation": datetime.utcfromtimestamp(date.astype('int64') * 1e-9),
+                "Date interpolation": datetime.utcfromtimestamp(date.astype('int64') * 1e-9),
                 "Date": datetime.utcfromtimestamp(today.to_datetime64().astype('int64') * 1e-9),
                 "Open": cs(date).tolist(),
                 "Open_nu1": cs(date, nu=1)*1e+15
             }
-
-            # # insert in database
-            # collection.insert_one(dict)
-            #
 
             VIX_list.append(dict)
             count += 1

@@ -1,6 +1,7 @@
 '''
 This script scrapes product details for VIX future contracts from the CBOE website using BeautifulSoup. It retrieves the
- relevant data, checks if the product already exists in MongoDB, and then saves the details if it's a new entry.
+ relevant data, checks if the product already exists in MongoDB (DB: Listed_Futures, COLL: Product_List), and then saves
+  the details if it's a new entry.
 '''
 
 import requests
@@ -10,7 +11,7 @@ import pymongo
 import json
 import time
 
-### GET NEW DATA FROM CBOE WEBISTE -------------------------------------------------------------------------------------
+### GET NEW DATA FROM CBOE WEBSITE -------------------------------------------------------------------------------------
 
 # URL of the website
 url = "https://www.cboe.com/us/futures/market_statistics/historical_data/"
@@ -56,7 +57,7 @@ for year in data.keys():
         current_product = curr_data['product_display']
 
         # Define the query to check if the product exists
-        query = {"product_id": current_product}
+        query = {"product_display": current_product}
 
         if not collection.find_one(query):
 

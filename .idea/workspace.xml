@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="automate string CBOE">
+    <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="completed routine_update_VIX_futures_product_details.py">
+      <change afterPath="$PROJECT_DIR$/routines/YF_hist_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_09_2024__23_37__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_20_05_24__22_44__Changes_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_20_05_24__22_44__Changes_.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routines/scrape_CBOE_names.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/scrape_CBOE_names.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/YF_ETFs_hist_data.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/routine_update_VIX_futures_product_details.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/routine_update_VIX_futures_product_details.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/store_data_mongoDB_collection.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/store_data_mongoDB_collection.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -183,7 +190,14 @@
       <option name="project" value="LOCAL" />
       <updated>1724689537338</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="completed routine_update_VIX_futures_product_details.py">
+      <created>1724865905666</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1724865905666</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -212,6 +226,7 @@
     <MESSAGE value="tidied up strategies descriptions" />
     <MESSAGE value="worked on execution algorithm" />
     <MESSAGE value="automate string CBOE" />
-    <option name="LAST_COMMIT_MESSAGE" value="automate string CBOE" />
+    <MESSAGE value="completed routine_update_VIX_futures_product_details.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="completed routine_update_VIX_futures_product_details.py" />
   </component>
 </project>
