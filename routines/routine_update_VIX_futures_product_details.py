@@ -10,6 +10,7 @@ import re
 import pymongo
 import json
 import time
+from datetime import datetime
 
 ### GET NEW DATA FROM CBOE WEBSITE -------------------------------------------------------------------------------------
 
@@ -50,9 +51,25 @@ def print_last_modification_time(collection):
         print("Collection is empty.")
 print_last_modification_time(collection=collection)
 
+# Find latest expire date and initialize it as a cutoff date
+cutoff_date = collection.find_one({}, sort=[("expire_date", -1)])['expire_date']
+
+# Find all sub-dictionaries where expire_date > cutoff_date
+result = {}
+for year, contracts in data.items():
+    list_of_contracts = []
+    for contract in contracts:
+        expire_date = datetime.strptime(contract['expire_date'], "%Y-%m-%d")
+        if expire_date > datetime.strptime(cutoff_date, '%Y-%m-%d'):
+            list_of_contracts.append(contract)
+    result[year] = list_of_contracts
+
+# Remove empty lists from the dictionary
+cleaned_result = {key: value for key, value in result.items() if value}
+
 count_new_inserts = 0
-for year in data.keys():
-    for curr_data in data[year]:
+for year in cleaned_result.keys():
+    for curr_data in cleaned_result[year]:
 
         current_product = curr_data['product_display']
 

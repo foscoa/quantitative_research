@@ -20,7 +20,7 @@ try:
 except Exception:
     print("Error: " + Exception)
 
-ticker_symbol = "^VIX"  # Example: Apple Inc.
+ticker_symbol = "SVXY" # Example: Apple Inc.
 
 # Get today's date and subtract 1 day to get yesterday's date
 yesterday = datetime.now() - timedelta(days=1)

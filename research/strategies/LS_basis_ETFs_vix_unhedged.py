@@ -14,7 +14,7 @@ def pull_data():
     collection = db.Yahoo_Finance
 
     start = '2014-01-02'
-    end = '2024-03-31'
+    end = '2024-08-30'
     tickers = ['SPY', 'VIXY', 'SVXY', '^VIX']
     param = "Open"
 
@@ -31,7 +31,7 @@ def pull_data():
     collection = db.CBOE_VIX_Futures_monthly
 
     start = '2013-01-02'
-    end = '2024-03-31'
+    end = '2024-08-30'
 
     # Project only the "Open" and "Date" fields
     projection = {"_id": 0, "Futures": 1, 'Expiry': 1}
