@@ -2,10 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="finalized YF_hist_data.py, now the script is ready to be set up as an automated task">
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_23_09_2024_10_52_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_23_09_2024_10_52__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/research/strategies/LS_basis_ETFs_vix_unhedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/research/strategies/LS_basis_ETFs_vix_unhedged.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/CBOE_VIX_Futures_hist_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routines/YF_hist_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/YF_hist_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/generate_VIX_term_structure.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routines/routine_update_VIX_futures_product_details.py" beforeDir="false" afterPath="$PROJECT_DIR$/routines/routine_update_VIX_futures_product_details.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -207,7 +208,14 @@
       <option name="project" value="LOCAL" />
       <updated>1727171645613</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="finalized YF_hist_data.py, now the script is ready to be set up as an automated task">
+      <created>1727601465400</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1727601465400</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

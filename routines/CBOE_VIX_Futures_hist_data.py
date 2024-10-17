@@ -50,6 +50,9 @@ for path in paths:
 
     # Define the query to check if the future exists
     query = {"Expiry": pd.to_datetime(expiry_string)}
+    projection = {'Trade Date'}
+
+    collection.find_one(query, projection, sort=[('Trade Date', -1)])
 
     if not collection.find_one(query):
 

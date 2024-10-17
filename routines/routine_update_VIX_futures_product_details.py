@@ -37,19 +37,15 @@ client = pymongo.MongoClient("mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu3
 db = client['Listed_Futures']
 collection = db['Product_List']
 
-# print last modification time
-def print_last_modification_time(collection):
+# last modification time
+last_document = collection.find_one(sort=[('_id', -1)])
 
-    # Print when database was last modified
-    last_document = collection.find_one(sort=[('_id', -1)])
-
-    if last_document:
-        # Extract timestamp from ObjectId
-        last_modified_time = last_document['_id'].generation_time
-        print(f"Last modification time: {last_modified_time}")
-    else:
-        print("Collection is empty.")
-print_last_modification_time(collection=collection)
+if last_document:
+    # Extract timestamp from ObjectId
+    last_modified_time = last_document['_id'].generation_time
+    print(f"Last modification time: {last_modified_time}")
+else:
+    print("Collection is empty.")
 
 # Find latest expire date and initialize it as a cutoff date
 cutoff_date = collection.find_one({}, sort=[("expire_date", -1)])['expire_date']
@@ -60,7 +56,7 @@ for year, contracts in data.items():
     list_of_contracts = []
     for contract in contracts:
         expire_date = datetime.strptime(contract['expire_date'], "%Y-%m-%d")
-        if expire_date > datetime.strptime(cutoff_date, '%Y-%m-%d'):
+        if expire_date > last_modified_time.replace(tzinfo=None):
             list_of_contracts.append(contract)
     result[year] = list_of_contracts
 
