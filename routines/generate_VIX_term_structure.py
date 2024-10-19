@@ -16,7 +16,7 @@ latest_date_CBOE_VIX_Futures_monthly = client.Listed_Futures.CBOE_VIX_Futures_mo
 
 # initialize dates
 start_date = latest_date_CBOE_VIX_Futures_monthly_INT + timedelta(days=1)
-end_date = min(latest_date_VIX_index, latest_date_CBOE_VIX_Futures_monthly) + timedelta(days=1)
+end_date = min(latest_date_VIX_index, latest_date_CBOE_VIX_Futures_monthly)
 
 start_date = start_date.strftime('%Y-%m-%d')
 end_date = end_date.strftime('%Y-%m-%d')

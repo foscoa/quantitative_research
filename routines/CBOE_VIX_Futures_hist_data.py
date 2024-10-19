@@ -7,6 +7,7 @@ The result is saved in Listed_Futures (DB)/CBOE_VIX_Futures_monthly (COL)
 import pymongo
 import pandas as pd
 from utils.store_data_mongoDB_collection import *
+from datetime import datetime
 
 # Create mongodb client
 client = pymongo.MongoClient("mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/")
@@ -46,27 +47,39 @@ count_new_inserts = 0
 for path in paths:
 
     url = "https://cdn.cboe.com/" + path
-    expiry_string = url[-14:-4]
+    expiry_datetime = pd.to_datetime(url[-14:-4])
+
+    # Find contracts to update: those who have an expiry which is later than the last date in the db
+    # [datetime.strptime(exp[-14:-4], "%Y-%m-%d") for exp in paths]
 
     # Define the query to check if the future exists
-    query = {"Expiry": pd.to_datetime(expiry_string)}
-    projection = {'Trade Date'}
+    query = {"Expiry": expiry_datetime}
+    projection = {'_id':0, 'Trade Date':1}
+    last_date_dictionary = collection.find_one(query, projection, sort=[('Trade Date', -1)])
 
-    collection.find_one(query, projection, sort=[('Trade Date', -1)])
+    if last_date_dictionary is None:
+        # Initialize a very old datetime (January 1, 1000)
+        last_date = datetime(2000, 1, 1)
+    else:
+        last_date = last_date_dictionary['Trade Date']
 
-    if not collection.find_one(query):
+    if last_date < expiry_datetime:
 
         # Read data from CBOE website
         data_frame = read_csv_from_url(url)
 
-        data_frame['Expiry'] = pd.to_datetime(expiry_string)  # create column with expiration date
-        data_frame.drop('EFP', inplace=True, axis=1)
-        data_frame['Trade Date'] = pd.to_datetime(data_frame['Trade Date'])
+        if last_date < datetime.strptime(list(data_frame['Trade Date'])[-1], '%Y-%m-%d'):
+            data_frame['Expiry'] = expiry_datetime  # create column with expiration date
+            data_frame.drop('EFP', inplace=True, axis=1)
+            data_frame['Trade Date'] = pd.to_datetime(data_frame['Trade Date'])
+            data_frame = data_frame[data_frame['Trade Date'] > last_date]
 
-        store_data_in_mongodb(data=data_frame,
-                              collection=collection,
-                              collection_ID=expiry_string)
-        count_new_inserts += 1
+            store_data_in_mongodb(data=data_frame,
+                                  collection=collection,
+                                  collection_ID=str(expiry_datetime))
+            count_new_inserts += 1
+
+
 
 if count_new_inserts > 0:
     print(f"The number of contracts modified or added is: {count_new_inserts}")
