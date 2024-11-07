@@ -316,43 +316,73 @@ class BacktestTradingStrategy:
 
                 )
 
-    def strategy_trailing_returns_table(self):
+    def trailing_returns_table(self):
         # Define a function to calculate the cumulative return over a specified period
         def calculate_return(df, period):
             start_date = df.index.max() - pd.DateOffset(
                 months=period) if period != 'since_inception' else df.index.min()
             end_date = df.index.max()
 
+            col_name = df.columns[0]
+
             if period == 'since_inception':
-                return (df.loc[end_date, 'Portfolio'] / df.loc[start_date, 'Portfolio']) - 1
+                return (df.loc[end_date, col_name] / df.loc[start_date, col_name]) - 1
 
             try:
-                start_value = df[df.index >= start_date].iloc[0]['Portfolio']
-                end_value = df.loc[end_date, 'Portfolio']
+                start_value = df[df.index >= start_date].iloc[0][col_name]
+                end_value = df.loc[end_date, col_name]
                 return (end_value / start_value) - 1
             except IndexError:
                 return None  # In case there are not enough data points for the period requested
 
-        df = self.portfolio_value()
+        # some variables
+        pt_value = self.portfolio_value()
+        bm_value = self.benchmark
+        percentage = FormatTemplate.percentage(2)
+
+        trailing_returns = []
 
         # Calculate returns for the required periods
-        last_month_return = calculate_return(df, period=1)  # 1 month
-        last_3_months_return = calculate_return(df, period=3)  # 3 months
-        last_6_months_return = calculate_return(df, period=6)  # 6 months
-        last_12_months_return = calculate_return(df, period=12)  # 12 months (1 year)
-        last_18_months_return = calculate_return(df, period=18)  # 18 months
-        last_2_years_return = calculate_return(df, period=24)  # 24 months (2 years)
-        last_5_years_return = calculate_return(df, period=60)  # 60 months (5 years)
-        since_inception_return = calculate_return(df, period='since_inception')  # Since inception
+        # 1 month
+        trailing_returns.append({'Time period':'Last month', 'Strategy': calculate_return(pt_value, period=1),
+                                         bm_value.columns[0]: calculate_return(bm_value, period=1)})
 
-        # Print the results
-        print("Last Month Return:", last_month_return)
-        print("Last 3 Months Return:", last_3_months_return)
-        print("Last 6 Months Return:", last_6_months_return)
-        print("Last 12 Months Return:", last_12_months_return)
-        print("Last 18 Months Return:", last_18_months_return)
-        print("Last 2 Years Return:", last_2_years_return)
-        print("Last 5 Years Return:", last_5_years_return)
-        print("Since Inception Return:", since_inception_return)
+        # 3 months
+        trailing_returns.append({'Time period':'3 months','Strategy': calculate_return(pt_value, period=3),
+                                          bm_value.columns[0]: calculate_return(bm_value, period=3)})
 
-        return
+        # 6 months
+        trailing_returns.append({'Time period':'6 months','Strategy': calculate_return(pt_value, period=6),
+                                            bm_value.columns[0]: calculate_return(bm_value, period=6)})
+
+        # 1 year
+        trailing_returns.append({'Time period':'1 year','Strategy': calculate_return(pt_value, period=12),
+                                            bm_value.columns[0]: calculate_return(bm_value, period=12)})
+
+        # 18 months
+        trailing_returns.append({'Time period':'18 months', 'Strategy': calculate_return(pt_value, period=18),
+                                      bm_value.columns[0]: calculate_return(bm_value, period=18)})
+
+        # 2 years
+        trailing_returns.append({'Time period':'2 years', 'Strategy': calculate_return(pt_value, period=24),
+                                      bm_value.columns[0]: calculate_return(bm_value, period=24)})
+
+        # 3 years
+        trailing_returns.append({'Time period':'3 years', 'Strategy': calculate_return(pt_value, period=36),
+                                      bm_value.columns[0]: calculate_return(bm_value, period=36)})
+
+        # 5 years
+        trailing_returns.append({'Time period':'5 years','Strategy': calculate_return(pt_value, period=60),
+                                       bm_value.columns[0]: calculate_return(bm_value, period=60)})
+
+        # Since inception
+        trailing_returns.append({'Time period':'Since inception', 'Strategy': calculate_return(pt_value, period='since_inception'),
+                                       bm_value.columns[0]: calculate_return(bm_value, period='since_inception')})
+
+
+
+        return dash_table.DataTable(
+                    data=trailing_returns,
+                    columns=[{"name": 'Time period', "id": 'Time period'}] +
+                            [{"name": i, "id": i, 'type': 'numeric', 'format': percentage} for i in ['Strategy', bm_value.columns[0]]],
+        )

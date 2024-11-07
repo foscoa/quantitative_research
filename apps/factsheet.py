@@ -26,6 +26,14 @@ def generate_factsheet_app(strategy):
                 style={'marginLeft': 80, 'marginRight': 80}
             ),
 
+            html.Br(),
+
+            html.Div(
+                children=[
+                    strategy.trailing_returns_table()
+                ]
+            )
+
         ])
 
     return app
