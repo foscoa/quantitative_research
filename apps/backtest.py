@@ -8,7 +8,6 @@ import seaborn as sns
 from dash import dash_table
 from dash.dash_table import FormatTemplate
 
-
 class BacktestTradingStrategy:
     def __init__(self,
                  name: str,
@@ -36,7 +35,6 @@ class BacktestTradingStrategy:
         self.benchmark = benchmark
         self.signal = signal
         self.transaction_costs = transaction_costs
-
 
     def assets_daily_PnL(self):
 
@@ -105,20 +103,30 @@ class BacktestTradingStrategy:
 
         return YTD_returns
 
-    def strategy_monthly_returns_table(self):
-        # develop
+    def monthly_returns_table(self):
+
+        # benchmark name
+        bm_name = self.benchmark.columns[0]
+
         PT_cum_ret = self.portfolio_value()
         monthy_returns_table = pd.DataFrame(data=[],
-                                            columns=calendar.month_abbr[1:13] + ["YTD"],
+                                            columns=calendar.month_abbr[1:13] + ["Strategy"] + [bm_name],
                                             index=PT_cum_ret.index.year.unique()[::-1])
 
+        # Portfolio
         for year in PT_cum_ret.index.year.unique():
             PT_cum_ret_year = PT_cum_ret[PT_cum_ret.index.year == year]
-            monthy_returns_table["YTD"][year] = PT_cum_ret_year['Portfolio'][-1] / PT_cum_ret_year['Portfolio'][0] - 1
+            monthy_returns_table["Strategy"][year] = PT_cum_ret_year['Portfolio'][-1] / PT_cum_ret_year['Portfolio'][0] - 1
             for month in PT_cum_ret_year.index.month.unique():
                 PT_cum_ret_month = PT_cum_ret_year[PT_cum_ret_year.index.month == month]
                 monthy_returns_table[calendar.month_abbr[month]][year] = \
                     PT_cum_ret_month['Portfolio'][-1] / PT_cum_ret_month['Portfolio'][0] - 1
+
+        # Benchmark
+        bm = self.benchmark
+        for year in bm.index.year.unique():
+            BM_cum_ret_year = bm[bm.index.year == year]
+            monthy_returns_table[bm_name][year] = BM_cum_ret_year[bm_name][-1] / BM_cum_ret_year[bm_name][0] - 1
 
         return monthy_returns_table
 
@@ -148,7 +156,6 @@ class BacktestTradingStrategy:
 
         return df.corr().iloc[0, 1]
 
-
     def calculate_summary_statistics(self):
 
         summary_stat = {}
@@ -167,7 +174,7 @@ class BacktestTradingStrategy:
 
         return summary_stat
 
-    def generate_report(self):
+    def cumulative_return_plot(self):
 
         # benchmark
         BM_cum_log_returns = (self.benchmark_daily_returns() + 1).cumprod()
@@ -242,9 +249,9 @@ class BacktestTradingStrategy:
 
         return fig
 
-    def generate_dash_monthly_returns_table(self):
+    def dash_monthly_returns_table(self):
 
-        my_df = self.strategy_monthly_returns_table()
+        my_df = self.monthly_returns_table()
         my_df.insert(0, 'Year', my_df.index)
         percentage = FormatTemplate.percentage(2)
 
@@ -261,27 +268,35 @@ class BacktestTradingStrategy:
 
         return dash_table.DataTable(
                     data=my_df.to_dict('records'),
-                    columns=[{'id': my_df.columns[0], 'name': my_df.columns[0]}] +
-                            [{'id': c, 'name': c, 'type': 'numeric', 'format': percentage} for c in my_df.columns[1:]],
+                    columns=[{'id': my_df.columns[0], 'name': ["Monthly Returns (%)", my_df.columns[0]]}] +
+                            [{'id': c, 'name': ["Monthly Returns (%)", c], 'type': 'numeric', 'format': percentage} for c in my_df.columns[1:-2]] +
+                            [{'id': c, 'name': ["Annual Returns", c], 'type': 'numeric', 'format': percentage} for c in my_df.columns[-2:]],
                     css=[{'selector': 'table', 'rule': 'table-layout: fixed'}],
-                    style_cell={
-                        'width': '{}%'.format(len(my_df.columns))
-                    },
                     style_data_conditional=[
                         {
                             'if': {
-                                'column_id': 'YTD'
+                                'column_id': 'Strategy'
                             },
                             'fontWeight': 'bold',
-                            'border-left': 'double'
+                            'border-left': 'double',
+                            'width': '{}%'.format(len(my_df.columns))
+                        },
+                        {
+                            'if': {
+                                'column_id':  "SPY"
+                            },
+                            'fontWeight': 'bold',
+                            'width': '{}%'.format(len(my_df.columns))
                         },
                         {
                             'if': {
                                 'column_id': 'Year'
                             },
                             'fontWeight': 'bold',
-                            'border-right': 'double'
+                            'border-right': 'double',
+                            'width': '{}%'.format(len(my_df.columns))
                         },
+
 
                     ] + [
                         {
@@ -289,9 +304,55 @@ class BacktestTradingStrategy:
                                 'filter_query': '{'+ j +'} > ' + str(filter[i]) + ' && {'+ j +'} < ' + str(filter[i+1])
                                                 + ' && {' + j + '} !=0',
                                 'column_id': j},
-                            'backgroundColor': str(master_palette[i])
-                        } for i in range(0, n_palette+1) for j in self.strategy_monthly_returns_table().columns
-                    ]
+                            'backgroundColor': str(master_palette[i]),
+                            'width': '{}%'.format(len(my_df.columns))
+                        } for i in range(0, n_palette+1) for j in self.monthly_returns_table().columns[:-2]
+                    ],
+                    style_header={
+                        'textAlign': 'left'
+                    },
+                    merge_duplicate_headers=True
 
 
                 )
+
+    def strategy_trailing_returns_table(self):
+        # Define a function to calculate the cumulative return over a specified period
+        def calculate_return(df, period):
+            start_date = df.index.max() - pd.DateOffset(
+                months=period) if period != 'since_inception' else df.index.min()
+            end_date = df.index.max()
+
+            if period == 'since_inception':
+                return (df.loc[end_date, 'Portfolio'] / df.loc[start_date, 'Portfolio']) - 1
+
+            try:
+                start_value = df[df.index >= start_date].iloc[0]['Portfolio']
+                end_value = df.loc[end_date, 'Portfolio']
+                return (end_value / start_value) - 1
+            except IndexError:
+                return None  # In case there are not enough data points for the period requested
+
+        df = self.portfolio_value()
+
+        # Calculate returns for the required periods
+        last_month_return = calculate_return(df, period=1)  # 1 month
+        last_3_months_return = calculate_return(df, period=3)  # 3 months
+        last_6_months_return = calculate_return(df, period=6)  # 6 months
+        last_12_months_return = calculate_return(df, period=12)  # 12 months (1 year)
+        last_18_months_return = calculate_return(df, period=18)  # 18 months
+        last_2_years_return = calculate_return(df, period=24)  # 24 months (2 years)
+        last_5_years_return = calculate_return(df, period=60)  # 60 months (5 years)
+        since_inception_return = calculate_return(df, period='since_inception')  # Since inception
+
+        # Print the results
+        print("Last Month Return:", last_month_return)
+        print("Last 3 Months Return:", last_3_months_return)
+        print("Last 6 Months Return:", last_6_months_return)
+        print("Last 12 Months Return:", last_12_months_return)
+        print("Last 18 Months Return:", last_18_months_return)
+        print("Last 2 Years Return:", last_2_years_return)
+        print("Last 5 Years Return:", last_5_years_return)
+        print("Since Inception Return:", since_inception_return)
+
+        return

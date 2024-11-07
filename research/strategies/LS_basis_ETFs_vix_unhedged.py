@@ -2,6 +2,7 @@
 from dash import Dash, html, dcc
 from utils.query_mongoDB_functions import *
 from apps.backtest import *
+from apps.factsheet import *
 
 # database connection
 url = "mongodb+srv://foscoa:Lsw0r4KyI0rlq8YH@cluster0.vu31vch.mongodb.net/"
@@ -48,7 +49,7 @@ def pull_data():
                           param='Total Volume',
                           collection=collection)
 
-    tot_vol = tot_vol[list(futures_map.Futures)] # order by maturity
+    tot_vol = tot_vol[list(futures_map.Futures)[:-2]] # order by maturity
 
     # Open
     param = 'Open'
@@ -59,7 +60,7 @@ def pull_data():
                           param=param,
                           collection=collection)
 
-    open = open[list(futures_map.Futures)] # order by maturity
+    open = open[list(futures_map.Futures)[:-2]] # order by maturity
 
 
     # pull VIX futures interpolated term structure ---------------------------------------------------------------------
@@ -141,31 +142,7 @@ strategy = BacktestTradingStrategy(
 
 # apps app ---------------------------------------------------------------------------------------------------------
 
-app = Dash(__name__)
-
-# app
-app.layout = html.Div(
-    children=[
-
-        html.Div(
-            children=[
-                dcc.Graph(
-                    id='example-graph',
-                    figure=strategy.generate_report(),
-                    style= {'height': '70vh'}
-                ),
-            ],
-            style={'height': '70vh'}
-        ),
-
-        html.Div(
-            children=[
-                strategy.generate_dash_monthly_returns_table()
-            ],
-            style={'marginLeft': 80, 'marginRight': 120}
-        ),
-
-])
+app = generate_factsheet_app(strategy=strategy)
 
 if __name__ == '__main__':
     app.run_server(debug=False, port=5001)
