@@ -137,14 +137,35 @@ class BacktestTradingStrategy:
 
         return DD.shift(-1)
 
-    def cagr(self):
+    def cagr(self, freq):
+
+        if freq == 'A':
+            n = 365.25
+        elif freq == 'M':
+            n = 30.44
 
         PT_cum_ret = self.portfolio_value() / self.starting_capital
 
         days = PT_cum_ret.index[-1] - PT_cum_ret.index[0]
+        n = days.days/365
+
+        cagr = (float(PT_cum_ret.values[-1])**(1/n))-1
+
+        return cagr
+
+    def cagr_bm(self, freq):
+
+        if freq == 'A':
+            n = 365.25
+        elif freq == 'M':
+            n = 30.44
+
+        PT_cum_ret = self.benchmark / self.benchmark.values[0][0]
+
+        days = PT_cum_ret.index[-1] - PT_cum_ret.index[0]
         years = days.days/365
 
-        cagr = (float(PT_cum_ret.values[-1])**(1/years))-1
+        cagr = (float(PT_cum_ret.values[-1])**(1/n))-1
 
         return cagr
 
@@ -169,7 +190,7 @@ class BacktestTradingStrategy:
         summary_stat["max DD"] = float(self.drawdown().min().values)
         summary_stat["sharpe ratio"] = float(PT_excess_returns.mean().values)*252/\
                                        (float(PT_daily_returns.std().values) * np.sqrt(252))
-        summary_stat["CAGR"] = self.cagr()
+        summary_stat["CAGR"] = self.cagr(freq='A')
         summary_stat["corr"] = self.correlation_with_benchmark()
 
         return summary_stat

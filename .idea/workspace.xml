@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="753b4097-8712-4b1d-8cf7-739a8c1e8765" name="Changes" comment="worked on automating tasks">
-      <change afterPath="$PROJECT_DIR$/research/strategies/backtrader.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/backtest.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/backtest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/factsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/factsheet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/research/strategies/LS_basis_ETFs_vix_unhedged.py" beforeDir="false" afterPath="$PROJECT_DIR$/research/strategies/LS_basis_ETFs_vix_unhedged.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
